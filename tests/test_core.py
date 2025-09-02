@@ -63,13 +63,13 @@ class TestRetryFunction(unittest.TestCase):
         
         def sometimes_fail():
             attempts.append(len(attempts))
-            if len(attempts) < 3:
+            if len(attempts) < 2:
                 raise ValueError("Not yet")
             return "finally success"
         
         result = retry_function(sometimes_fail, max_retries=2, task_name="test")
         self.assertEqual(result, "finally success")
-        self.assertEqual(len(attempts), 3)
+        self.assertEqual(len(attempts), 2)
     
     def test_exhaust_all_retries(self):
         """测试耗尽所有重试次数"""
@@ -88,9 +88,9 @@ class TestRetryFunction(unittest.TestCase):
             return "should timeout"
         
         # retry_function会在重试耗尽后抛出最后的异常
-            from funcguard.core import FuncguardTimeoutError
-            with self.assertRaises(FuncguardTimeoutError):
-                retry_function(timeout_function, max_retries=1, execute_timeout=1, task_name="test")
+        from funcguard.core import FuncguardTimeoutError
+        with self.assertRaises(FuncguardTimeoutError):
+            retry_function(timeout_function, max_retries=1, execute_timeout=1, task_name="test")
     
     @patch('time.sleep')
     def test_retry_with_custom_delay(self, mock_sleep):
@@ -102,7 +102,7 @@ class TestRetryFunction(unittest.TestCase):
             retry_function(always_fail, max_retries=2, task_name="test")
         
         # 验证sleep被调用了正确的次数
-        self.assertEqual(mock_sleep.call_count, 2)
+        self.assertEqual(mock_sleep.call_count, 1)
 
 
 if __name__ == '__main__':

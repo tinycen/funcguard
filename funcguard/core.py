@@ -50,7 +50,7 @@ def retry_function( func , max_retries = 5 , execute_timeout = 90 , task_name = 
         current_timeout = original_timeout + 30
 
     last_exception = None
-    while retry_count <= max_retries :
+    while retry_count < max_retries :
         try :
             result = timeout_handler( func , args = args , kwargs = kwargs , execution_timeout = current_timeout )
             return result  # 如果调用成功，则返回结果
@@ -72,9 +72,9 @@ def retry_function( func , max_retries = 5 , execute_timeout = 90 , task_name = 
                     # print( f"增加timeout参数至: {kwargs[ 'timeout' ]}秒" )
 
             print( f"{task_name} : {func.__name__} 请求失败，正在重试... (第{retry_count}次)" )
-            if retry_count <= max_retries :  # 如果不是最后一次重试，则等待一段时间后重试
+            if retry_count < max_retries :  # 如果不是最后一次重试，则等待一段时间后重试
                 time.sleep( 5 * retry_count )
-    print( f"请求失败次数达到上限：{max_retries}次，终止请求。" )
+    print( f"请求失败次数达到上限：{max_retries}次，终止请求。重试了{retry_count}次" )
     # 这里可以添加更多的错误处理逻辑，例如记录错误信息
     if last_exception:
         raise last_exception  # 重新抛出最后一个异常
