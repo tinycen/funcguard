@@ -20,7 +20,7 @@ class TestTimeoutHandler(unittest.TestCase):
     def test_timeout_execution(self):
         """测试超时的函数"""
         def slow_function():
-            time.sleep(3)
+            time.sleep(2)
             return "should not reach here"
         
         with self.assertRaises(TimeoutError) as context:
