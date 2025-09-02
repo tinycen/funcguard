@@ -1,4 +1,11 @@
 class FuncguardTimeoutError(Exception):
+    """
+    funcguard库专用的超时异常类。
+    
+    为了避免与concurrent.futures.TimeoutError和Python内置TimeoutError的命名冲突，
+    特定义此异常类来明确表示这是funcguard库抛出的函数执行超时异常。
+    这样用户可以清晰地区分异常来源，并进行针对性的异常处理。
+    """
     pass
 
 import time
@@ -55,7 +62,7 @@ def retry_function( func , max_retries = 5 , execute_timeout = 90 , task_name = 
             result = timeout_handler( func , args = args , kwargs = kwargs , execution_timeout = current_timeout )
             return result  # 如果调用成功，则返回结果
 
-        except BaseException as e :
+        except Exception as e :
             last_exception = e
             retry_count += 1
             print( e )
