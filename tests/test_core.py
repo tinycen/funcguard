@@ -23,7 +23,8 @@ class TestTimeoutHandler(unittest.TestCase):
             time.sleep(2)
             return "should not reach here"
         
-        with self.assertRaises(TimeoutError) as context:
+        from funcguard.core import FuncguardTimeoutError
+        with self.assertRaises(FuncguardTimeoutError) as context:
             timeout_handler(slow_function, execution_timeout=1)
         
         self.assertIn("执行时间超过 1 秒", str(context.exception))
@@ -87,8 +88,9 @@ class TestRetryFunction(unittest.TestCase):
             return "should timeout"
         
         # retry_function会在重试耗尽后抛出最后的异常
-        with self.assertRaises(Exception):
-            retry_function(timeout_function, max_retries=1, execute_timeout=1, task_name="test")
+            from funcguard.core import FuncguardTimeoutError
+            with self.assertRaises(FuncguardTimeoutError):
+                retry_function(timeout_function, max_retries=1, execute_timeout=1, task_name="test")
     
     @patch('time.sleep')
     def test_retry_with_custom_delay(self, mock_sleep):

@@ -1,3 +1,6 @@
+class FuncguardTimeoutError(Exception):
+    pass
+
 import time
 from concurrent.futures import ThreadPoolExecutor , TimeoutError
 
@@ -22,7 +25,7 @@ def timeout_handler( func, args = (), kwargs = None, execution_timeout = 90 ):
         except TimeoutError:
             error_message = f"TimeoutError：函数 {func.__name__} 执行时间超过 {execution_timeout} 秒"
             # print( error_message )
-            raise TimeoutError( error_message )
+            raise FuncguardTimeoutError( error_message )
 
 
 # 重试函数
@@ -46,12 +49,14 @@ def retry_function( func , max_retries = 5 , execute_timeout = 90 , task_name = 
     if current_timeout < original_timeout :
         current_timeout = original_timeout + 30
 
-    while retry_count < max_retries :
+    last_exception = None
+    while retry_count <= max_retries :
         try :
             result = timeout_handler( func , args = args , kwargs = kwargs , execution_timeout = current_timeout )
             return result  # 如果调用成功，则返回结果
 
-        except Exception as e :
+        except BaseException as e :
+            last_exception = e
             retry_count += 1
             print( e )
             if "TimeoutError" in str( e ) :
@@ -67,10 +72,10 @@ def retry_function( func , max_retries = 5 , execute_timeout = 90 , task_name = 
                     # print( f"增加timeout参数至: {kwargs[ 'timeout' ]}秒" )
 
             print( f"{task_name} : {func.__name__} 请求失败，正在重试... (第{retry_count}次)" )
-            if retry_count < max_retries :  # 如果不是最后一次重试，则等待一段时间后重试
+            if retry_count <= max_retries :  # 如果不是最后一次重试，则等待一段时间后重试
                 time.sleep( 5 * retry_count )
-            else :
-                print( f"请求失败次数达到上限：{max_retries}次，终止请求。" )
-                # 这里可以添加更多的错误处理逻辑，例如记录错误信息
-                raise e  # 重新抛出最后一个异常
+    print( f"请求失败次数达到上限：{max_retries}次，终止请求。" )
+    # 这里可以添加更多的错误处理逻辑，例如记录错误信息
+    if last_exception:
+        raise last_exception  # 重新抛出最后一个异常
     return None
