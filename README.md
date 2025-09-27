@@ -7,12 +7,9 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 函数执行超时控制
 - 函数执行失败自动重试
 - HTTP请求封装（支持自动重试）
+- 格式化打印工具（分隔线和块打印）
 
 ## 安装/升级
-
-```bash
-pip install funcguard
-```
 
 ```bash
 pip install --upgrade funcguard
@@ -96,6 +93,32 @@ response = send_request(
 print(response)
 ```
 
+### 格式化打印
+
+使用`print_line`和`print_block`函数进行格式化打印，便于查看和调试：
+
+```python
+from funcguard.printer import print_line, print_block
+
+# 打印分隔线
+print_line()  # 默认使用40个'-'字符
+print_line("*", 30)  # 使用30个'*'字符
+
+# 打印块内容
+print_block("用户信息", {"name": "张三", "age": 25})
+
+# 自定义分隔符
+print_block("配置信息", {"debug": True, "port": 8080}, "=", 50)
+
+# 打印复杂内容
+result = {
+    "status": "success",
+    "data": [1, 2, 3, 4, 5],
+    "message": "操作完成"
+}
+print_block("API响应", result)
+```
+
 ## API文档
 
 ### funcguard.core
@@ -136,6 +159,26 @@ print(response)
   - `auto_retry`: 自动重试配置，格式为`{"task_name": "", "max_retries": 5, "execute_timeout": 90}`，默认为None
 - **返回值**: 根据return_type参数返回不同格式的响应数据
 - **异常**: 当请求失败且重试次数用尽后，抛出相应的异常
+
+### funcguard.printer
+
+#### print_line(separator_char: str = "-", separator_length: int = 40) -> None
+
+- **参数**:
+  - `separator_char`: 分隔符字符，默认为'-'
+  - `separator_length`: 分隔符长度，默认为40
+- **返回值**: 无
+- **功能**: 打印分隔线，用于分隔不同的打印块
+
+#### print_block(title: str, content: Any, separator_char: str = "-", separator_length: int = 40) -> None
+
+- **参数**:
+  - `title`: 标题
+  - `content`: 打印的内容
+  - `separator_char`: 分隔符字符，默认为'-'
+  - `separator_length`: 分隔符长度，默认为40
+- **返回值**: 无
+- **功能**: 使用分隔符打印标题和内容，便于查看
 
 ## 许可证
 
