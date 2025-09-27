@@ -3,11 +3,20 @@ import requests
 from typing import Optional, Dict, Any, Union
 from .core import retry_function
 
+
 # 发起请求
-def send_request( method: str , url: str , headers: Dict[str, str] , data: Optional[Any] = None , return_type: str = "json" , timeout: int = 60 , auto_retry: Optional[Dict[str, Any]] = None ) -> Union[Dict, str, requests.Response]:
-    '''
+def send_request(
+    method: str,
+    url: str,
+    headers: Dict[str, str],
+    data: Optional[Any] = None,
+    return_type: str = "json",
+    timeout: int = 60,
+    auto_retry: Optional[Dict[str, Any]] = None,
+) -> Union[Dict, str, requests.Response]:
+    """
     发送HTTP请求的通用函数
-    
+
     :param method: HTTP方法（GET, POST等）
     :param url: 请求URL
     :param headers: 请求头
@@ -17,30 +26,41 @@ def send_request( method: str , url: str , headers: Dict[str, str] , data: Optio
     :param auto_retry: 自动重试配置，格式为：
                      {"task_name": "任务名称", "max_retries": 最大重试次数, "execute_timeout": 执行超时时间}
     :return: 请求结果
-    '''
-    if data is None :
-        payload = { }
-    else :
-        if (isinstance( data , dict ) or isinstance( data , list )) and data != { } :
-            payload = json.dumps( data , ensure_ascii = False )
-        else :
+    """
+    if data is None:
+        payload = {}
+    else:
+        if (isinstance(data, dict) or isinstance(data, list)) and data != {}:
+            payload = json.dumps(data, ensure_ascii=False)
+        else:
             payload = data
-    if auto_retry is None :
-        response = requests.request( method , url , headers = headers , data = payload , timeout = timeout )
-    else :
-        max_retries = auto_retry.get( "max_retries" , 5 )
-        execute_timeout = auto_retry.get( "execute_timeout" , 90 )
-        task_name = auto_retry.get( "task_name" , "" )
-        response = retry_function( requests.request , max_retries , execute_timeout , task_name , method , url ,
-                                        headers = headers , data = payload , timeout = timeout )
+    if auto_retry is None:
+        response = requests.request(
+            method, url, headers=headers, data=payload, timeout=timeout
+        )
+    else:
+        max_retries = auto_retry.get("max_retries", 5)
+        execute_timeout = auto_retry.get("execute_timeout", 90)
+        task_name = auto_retry.get("task_name", "")
+        response = retry_function(
+            requests.request,
+            max_retries,
+            execute_timeout,
+            task_name,
+            method,
+            url,
+            headers=headers,
+            data=payload,
+            timeout=timeout,
+        )
 
     if response is None:
         raise ValueError("请求返回的响应为None")
-    
-    if return_type == "json" :
+
+    if return_type == "json":
         result = response.json()
-    elif return_type == "response" :
+    elif return_type == "response":
         return response
-    else :
+    else:
         result = response.text
     return result
