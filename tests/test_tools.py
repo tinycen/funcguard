@@ -1,6 +1,7 @@
 import json
 import unittest
 from unittest.mock import patch, MagicMock
+from typing import Any, Optional, Dict
 import requests
 
 from funcguard.tools import send_request
@@ -9,12 +10,16 @@ from funcguard.tools import send_request
 class MockResponse:
     """模拟requests响应"""
     
-    def __init__(self, json_data=None, text="", status_code=200):
+    json_data: Dict[str, Any]
+    text: str
+    status_code: int
+    
+    def __init__(self, json_data: Optional[Dict[str, Any]] = None, text: str = "", status_code: int = 200):
         self.json_data = json_data or {}
         self.text = text
         self.status_code = status_code
     
-    def json(self):
+    def json(self) -> Dict[str, Any]:
         return self.json_data
 
 
@@ -97,7 +102,7 @@ class TestSendRequest(unittest.TestCase):
         
         mock_request.assert_called_once()
     
-    @patch('funcguard.core.retry_function')
+    @patch('funcguard.tools.retry_function')
     @patch('requests.request')
     def test_auto_retry_enabled(self, mock_request, mock_retry):
         """测试启用自动重试"""
@@ -117,12 +122,16 @@ class TestSendRequest(unittest.TestCase):
             }
         )
         
-        # 验证结果
-        if hasattr(result, 'json_data'):
-            # 如果result是MockResponse对象，直接比较其json_data
-            self.assertEqual(result.json_data, {"success": True})
+        # 验证结果 - 使用更安全的方式处理可能的类型差异
+        if isinstance(result, dict):
+            # 如果result是字典（JSON解析结果）
+            self.assertEqual(result, {"success": True})
+        elif hasattr(result, 'json_data'):
+            # 如果result是MockResponse对象，使用getattr避免类型检查错误
+            json_data = getattr(result, 'json_data')
+            self.assertEqual(json_data, {"success": True})
         else:
-            # 否则直接比较result
+            # 其他情况，直接比较
             self.assertEqual(result, {"success": True})
         mock_retry.assert_called_once()
     

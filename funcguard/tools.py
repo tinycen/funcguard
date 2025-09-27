@@ -1,10 +1,10 @@
 import json
 import requests
-from . import core
-# 使用 from .core import retry_function 会导致测试失败
+from typing import Optional, Dict, Any, Union
+from .core import retry_function
 
 # 发起请求
-def send_request( method , url , headers , data = None , return_type = "json" , timeout = 60 , auto_retry = None ) :
+def send_request( method: str , url: str , headers: Dict[str, str] , data: Optional[Any] = None , return_type: str = "json" , timeout: int = 60 , auto_retry: Optional[Dict[str, Any]] = None ) -> Union[Dict, str, requests.Response]:
     '''
     发送HTTP请求的通用函数
     
@@ -31,7 +31,7 @@ def send_request( method , url , headers , data = None , return_type = "json" , 
         max_retries = auto_retry.get( "max_retries" , 5 )
         execute_timeout = auto_retry.get( "execute_timeout" , 90 )
         task_name = auto_retry.get( "task_name" , "" )
-        response = core.retry_function( requests.request , max_retries , execute_timeout , task_name , method , url ,
+        response = retry_function( requests.request , max_retries , execute_timeout , task_name , method , url ,
                                         headers = headers , data = payload , timeout = timeout )
 
     if response is None:
