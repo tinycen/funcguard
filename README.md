@@ -131,41 +131,33 @@ from funcguard import time_log, time_diff
 start_time = time_diff()
 
 # 记录任务开始（i从0开始）
-time_log("开始处理数据", 0, 100, 0, start_time)
+time_log("开始处理数据", 0, 100, start_time, 0)
 
 # 模拟处理过程
 import time
 for i in range(1, 101):
     time.sleep(0.1)  # 模拟处理时间
     if i % 20 == 0:
-        time_log(f"处理进度", i, 100, 0, start_time)  # 显示进度和预计完成时间
+        time_log(f"处理进度", i, 100, start_time, 0)  # 显示进度和预计完成时间
 
 # 记录任务完成并打印统计信息
-time_log("数据处理完成", 100, 100, 0, start_time)
 time_diff(start_time, 100, "cn")  # 中文显示统计信息
 ```
 
 或者当i从1开始时：
 
 ```python
-from funcguard import time_log, time_diff
-
-# 获取开始时间
-start_time = time_diff()
 
 # 记录任务开始（i从1开始）
-time_log("开始处理数据", 1, 100, 1, start_time)
+time_log("开始处理数据", 1, 100, start_time, 1)
 
 # 模拟处理过程
 import time
 for i in range(1, 101):
     time.sleep(0.1)  # 模拟处理时间
     if i % 20 == 0:
-        time_log(f"处理进度", i, 100, 1, start_time)  # 显示进度和预计完成时间
+        time_log(f"处理进度", i, 100, start_time, 1)  # 显示进度和预计完成时间
 
-# 记录任务完成并打印统计信息
-time_log("数据处理完成", 100, 100, 1, start_time)
-time_diff(start_time, 100, "cn")  # 中文显示统计信息
 ```
 
 时间日志功能特点：
@@ -216,14 +208,14 @@ time_diff(start_time, 100, "cn")  # 中文显示统计信息
 - **返回值**: 根据return_type参数返回不同格式的响应数据
 - **异常**: 当请求失败且重试次数用尽后，抛出相应的异常
 
-#### time_log(message, i=0, max_num=0, start_from=0, s_time=None)
+#### time_log(message, i=0, max_num=0, s_time=None, start_from=0)
 
 - **参数**:
   - `message`: 日志消息
   - `i`: 当前进度，默认为0
   - `max_num`: 总进度数量，默认为0
-  - `start_from`: i是否从0开始，0表示从0开始，1表示从1开始，默认为0
   - `s_time`: 开始时间，用于计算预计完成时间，默认为None
+  - `start_from`: i是否从0开始，0表示从0开始，1表示从1开始，默认为0
 - **返回值**: 无
 - **功能**: 打印带时间戳的日志信息，支持进度显示和预计完成时间计算
 

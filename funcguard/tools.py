@@ -68,15 +68,15 @@ def send_request(
 
 
 # 打印时间
-def time_log(message, i = 0, max_num = 0, start_from = 0, s_time = None,) :
+def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
     """
     打印带时间戳的日志信息，支持进度显示和预计完成时间
     
     :param message: 日志消息
     :param i: 当前进度
     :param max_num: 总进度数量
-    :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
     :param s_time: 开始时间，用于计算预计完成时间
+    :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
     :return: None
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
