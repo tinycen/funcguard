@@ -8,6 +8,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 函数执行失败自动重试
 - HTTP请求封装（支持自动重试）
 - 格式化打印工具（分隔线和块打印）
+- 时间日志记录和耗时统计
 
 ## 安装/升级
 
@@ -23,7 +24,7 @@ pip install --upgrade funcguard
 使用`timeout_handler`函数可以控制函数的执行时间，防止函数运行时间过长：
 
 ```python
-from funcguard.core import timeout_handler
+from funcguard import timeout_handler
 
 def long_running_function():
     # 模拟一个耗时操作
@@ -44,7 +45,7 @@ except TimeoutError as e:
 使用`retry_function`函数可以在函数执行失败时自动重试：
 
 ```python
-from funcguard.core import retry_function
+from funcguard import retry_function
 
 def unstable_function():
     # 模拟一个可能失败的操作
@@ -66,7 +67,7 @@ except Exception as e:
 使用`send_request`函数发送HTTP请求，支持自动重试：
 
 ```python
-from funcguard.tools import send_request
+from funcguard import send_request
 
 # 不使用重试
 response = send_request(
@@ -98,7 +99,7 @@ print(response)
 使用`print_line`和`print_block`函数进行格式化打印，便于查看和调试：
 
 ```python
-from funcguard.printer import print_line, print_block
+from funcguard import print_line, print_block
 
 # 打印分隔线
 print_line()  # 默认使用40个'-'字符
@@ -118,6 +119,37 @@ result = {
 }
 print_block("API响应", result)
 ```
+
+### 时间日志记录
+
+使用`time_log`和`time_diff`函数记录任务执行时间和统计信息：
+
+```python
+from funcguard import time_log, time_diff
+
+# 获取开始时间
+start_time = time_diff()
+
+# 记录任务开始
+time_log("开始处理数据", 0, 100, start_time)
+
+# 模拟处理过程
+import time
+for i in range(1, 101):
+    time.sleep(0.1)  # 模拟处理时间
+    if i % 20 == 0:
+        time_log(f"处理进度", i, 100, start_time)  # 显示进度和预计完成时间
+
+# 记录任务完成并打印统计信息
+time_log("数据处理完成", 100, 100, start_time)
+time_diff(start_time, 100, "cn")  # 中文显示统计信息
+```
+
+时间日志功能特点：
+- 自动显示北京时间（UTC+8）
+- 支持进度显示和预计完成时间计算
+- 提供中英文双语统计信息
+- 可显示总耗时、平均耗时等详细统计
 
 ## API文档
 
@@ -159,6 +191,25 @@ print_block("API响应", result)
   - `auto_retry`: 自动重试配置，格式为`{"task_name": "", "max_retries": 5, "execute_timeout": 90}`，默认为None
 - **返回值**: 根据return_type参数返回不同格式的响应数据
 - **异常**: 当请求失败且重试次数用尽后，抛出相应的异常
+
+#### time_log(message, i=0, max_num=0, s_time=None)
+
+- **参数**:
+  - `message`: 日志消息
+  - `i`: 当前进度（从0开始），默认为0
+  - `max_num`: 总进度数量，默认为0
+  - `s_time`: 开始时间，用于计算预计完成时间，默认为None
+- **返回值**: 无
+- **功能**: 打印带时间戳的日志信息，支持进度显示和预计完成时间计算
+
+#### time_diff(s_time=None, max_num=0, language="cn")
+
+- **参数**:
+  - `s_time`: 开始时间，默认为None
+  - `max_num`: 任务数量，默认为0
+  - `language`: 语言选择（"cn"中文，其他为英文），默认为"cn"
+- **返回值**: 如果s_time为None则返回当前时间，否则返回None
+- **功能**: 计算并打印任务执行时间统计信息，支持中英文双语输出
 
 ### funcguard.printer
 
