@@ -16,7 +16,7 @@ setup(
     ],
     author='tinycen',
     author_email='sky_ruocen@qq.com',
-    description='A funcguard for Python.',
+    description='FuncGuard是一个Python库，提供函数执行超时控制、重试机制、HTTP请求封装和格式化打印工具。',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/tinycen/funcguard',
