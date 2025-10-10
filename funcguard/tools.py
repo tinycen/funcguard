@@ -68,30 +68,31 @@ def send_request(
 
 
 # 打印时间
-def time_log(message, i = 0, max_num = 0, s_time = None) :
+def time_log(message, i = 0, max_num = 0, start_from = 0, s_time = None,) :
     """
     打印带时间戳的日志信息，支持进度显示和预计完成时间
     
     :param message: 日志消息
-    :param i: 当前进度（从0开始）
+    :param i: 当前进度
     :param max_num: 总进度数量
+    :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
     :param s_time: 开始时间，用于计算预计完成时间
     :return: None
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
     time_log = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
-    if i < 2 :
+    if i < 2 or max_num < 2 :
         print( time_log + " " + message )
+
     else :
-        if max_num == 0 :
-            text = "{}".format( i )
-        else :
-            text = "{}/{}".format( i, max_num )
+        # 根据start_from参数计算实际处理的项目数
+        process_item = i + 1 if start_from == 0 else i
+        text = "{}/{}".format( process_item, max_num )
         # 检查是否应该显示预计完成时间和剩余时间
-        if i % 10 == 0 and s_time is not None and i < max_num :
+        if process_item % 10 == 0 and s_time is not None and process_item < max_num :
             duration = now - s_time
-            ev_duration = duration / i  # 每项平均耗时
-            remaining_items = max_num - i
+            ev_duration = duration / process_item  # 每项平均耗时
+            remaining_items = max_num - process_item
             time_left = ev_duration * remaining_items
             end_time = now + time_left
             end_time_str = end_time.strftime( "%Y-%m-%d %H:%M" )
