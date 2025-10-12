@@ -1,5 +1,18 @@
 from typing import Any
 
+# 打印带等号的标题（如：=== 初始化分类器 ===）
+def print_title(title: str, separator_char: str = "=", padding_length: int = 3) -> None:
+    """
+    打印带分隔符的标题，格式如：=== 初始化分类器 ===
+    
+    :param title: 标题内容
+    :param separator_char: 分隔符字符，默认为'='
+    :param padding_length: 标题两侧的分隔符数量，默认为3
+    """
+    separator = separator_char * padding_length
+    print(f"{separator} {title} {separator}")
+
+
 # 打印分隔线
 def print_line(separator_char: str = "-", separator_length: int = 40) -> None:
     """

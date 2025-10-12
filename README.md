@@ -96,10 +96,14 @@ print(response)
 
 ### 格式化打印
 
-使用`print_line`和`print_block`函数进行格式化打印，便于查看和调试：
+使用`print_line`、`print_block`和`print_title`函数进行格式化打印，便于查看和调试：
 
 ```python
-from funcguard import print_line, print_block
+from funcguard import print_line, print_block, print_title
+
+# 打印带等号的标题
+print_title("初始化分类器")  # 输出：=== 初始化分类器 ===
+print_title("训练完成", separator_char="*", padding_length=2)  # 输出：** 训练完成 **
 
 # 打印分隔线
 print_line()  # 默认使用40个'-'字符
@@ -237,6 +241,15 @@ for i in range(1, 101):
   - `separator_length`: 分隔符长度，默认为40
 - **返回值**: 无
 - **功能**: 打印分隔线，用于分隔不同的打印块
+
+#### print_title(title: str, separator_char: str = "=", padding_length: int = 3) -> None
+
+- **参数**:
+  - `title`: 标题内容
+  - `separator_char`: 分隔符字符，默认为'='
+  - `padding_length`: 标题两侧的分隔符数量，默认为3
+- **返回值**: 无
+- **功能**: 打印带分隔符的标题，格式如：=== 初始化分类器 ===
 
 #### print_block(title: str, content: Any, separator_char: str = "-", separator_length: int = 40) -> None
 
