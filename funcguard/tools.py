@@ -129,9 +129,9 @@ def time_diff(s_time = None, max_num = 0, language = "cn") :
     minutes = round( duration.total_seconds() / 60 )
     if max_num == 0 :
         if language == "cn" :
-            print( "总耗时：{}".format( result ) )
+            print( "总耗时：{:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ) )
         else :
-            print( "Total time: {}".format( result ) )
+            print( "Total time: {:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ) )
     else :
         eve_minutes = round( minutes / max_num, 3 )
         if language == "cn" :
