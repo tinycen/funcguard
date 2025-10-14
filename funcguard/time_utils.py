@@ -41,7 +41,7 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
 
 
 # 计算持续时间
-def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = 0) :
+def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = 1) :
     """
     计算并打印任务执行时间统计信息
     
@@ -49,9 +49,9 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = 0) 
     :param max_num: 任务数量
     :param language: 语言选择（"cn"中文，其他为英文）
     :param return_duration: 
-        返回模式，默认为0,
-        0，不返回持续时间（total_seconds），仅打印信息
-        1，仅返回 total_seconds
+        返回模式，默认为1,
+        0，仅返回 total_seconds，不打印信息
+        1，仅打印信息,不返回 total_seconds
         2，print 信息，并返回 total_seconds
     :return: 如果s_time为None则返回当前时间
     """
@@ -117,24 +117,28 @@ def monitor_execution_time(warning_threshold=None, print_mode=2, func=None, *arg
     s_time = datetime.now( timezone( timedelta( hours = 8 ) ) )
     
     if func is None:
-        raise ValueError("monitor_execution_time: func is None, func must be a function")
+        raise ValueError("func is None, func must be a function")
     
     # 执行函数并获取结果
     result = func(*args, **kwargs)
     
     # 计算执行时间
-    if print_mode == 1 :
+    if print_mode in [ 0, 2 ]  :  # print_mode：0 和 2 需要 time_diff 内部不执行 print 但返回 total_seconds 信息
         return_duration = 0
-    else:
+
+    elif print_mode == 1 :
         return_duration = 2
+
+    else:
+        raise ValueError("print_mode must be 0, 1 or 2")
+
     total_seconds = time_diff(s_time, return_duration=return_duration) # pyright: ignore[reportGeneralTypeIssues]
     
     # 根据打印模式决定是否打印耗时信息
-    if print_mode == 1:
-        print(f"函数 {func.__name__} 执行耗时: {total_seconds:.2f}秒")
-    elif print_mode == 2 and warning_threshold is not None and total_seconds > warning_threshold:
+    if print_mode == 2 and warning_threshold is not None and total_seconds > warning_threshold:
         print(f"警告: 函数 {func.__name__} 执行耗时 {total_seconds:.2f}秒，超过阈值 {warning_threshold}秒")
-    elif print_mode == 0:
+
+    if print_mode == 0:
         return result, total_seconds
     
     return result
