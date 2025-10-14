@@ -250,6 +250,8 @@ print(f"结果: {result}, 耗时: {duration}秒")
 - **返回值**: 根据return_type参数返回不同格式的响应数据
 - **异常**: 当请求失败且重试次数用尽后，抛出相应的异常
 
+### funcguard.time_utils
+
 #### time_log(message, i=0, max_num=0, s_time=None, start_from=0)
 
 - **参数**:
@@ -261,19 +263,19 @@ print(f"结果: {result}, 耗时: {duration}秒")
 - **返回值**: 无
 - **功能**: 打印带时间戳的日志信息，支持进度显示和预计完成时间计算
 
-#### time_diff(s_time=None, max_num=0, language="cn", return_duration=0)
+#### time_diff(s_time=None, max_num=0, language="cn", return_duration=1)
 
 - **参数**:
   - `s_time`: 开始时间，默认为None
   - `max_num`: 任务数量，默认为0
   - `language`: 语言选择（"cn"中文，其他为英文），默认为"cn"
-  - `return_duration`: 返回模式，默认为0:
-    - 0 - 不返回持续时间（total_seconds），仅打印信息
-    - 1 - 仅返回 total_seconds
+  - `return_duration`: 返回模式，默认为1:
+    - 0 - 仅返回 total_seconds，不打印信息
+    - 1 - 仅打印信息,不返回 total_seconds
     - 2 - 打印信息，并返回 total_seconds
 - **返回值**: 
   - 如果s_time为None则返回当前时间
-  - 如果return_duration为1或2则返回持续时间（秒）
+  - 如果return_duration为0或2则返回持续时间（秒）
   - 否则返回None
 - **功能**: 计算并打印任务执行时间统计信息，支持中英文双语输出
 
@@ -293,7 +295,9 @@ print(f"结果: {result}, 耗时: {duration}秒")
   - print_mode == 1: 函数的执行结果
   - print_mode == 2: 函数的执行结果
 - **功能**: 监控函数执行时间，并返回函数的执行结果和执行时间
-- **注意**: 内部使用 time_diff 函数，根据 print_mode 自动设置 return_duration 参数
+- **注意**: 该方法内部使用 time_diff 函数，根据 print_mode 自动设置 return_duration 参数
+  - print_mode 为 0 或 2 时，设置 return_duration=0（ time_diff 仅返回total_seconds，不打印信息）
+  - print_mode 为 1 时，设置 return_duration=2（ time_diff 打印信息，并返回total_seconds）
 
 ### funcguard.printer
 

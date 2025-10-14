@@ -2,7 +2,7 @@
 # bash create_tag.sh
 
 # 定义要创建的标签
-TAG_NAME="v0.1.7"
+TAG_NAME="v0.1.8"
 # 请注意，需要同步修改 setup.py 中的 version，否则无法同步到Pypi
 
 # 显示 创建前 3个本地标签

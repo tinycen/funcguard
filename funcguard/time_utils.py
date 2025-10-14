@@ -64,7 +64,7 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = 1) 
     e_time = now
     duration = e_time - s_time
     total_seconds = int(duration.total_seconds())
-    if return_duration == 1:
+    if return_duration == 0:
         return total_seconds
 
     hours = total_seconds // 3600
