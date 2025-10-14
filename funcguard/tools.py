@@ -103,14 +103,17 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
 
 
 # 计算持续时间
-def time_diff(s_time = None, max_num = 0, language = "cn") :
+def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = False) :
     """
     计算并打印任务执行时间统计信息
     
     :param s_time: 开始时间
     :param max_num: 任务数量
     :param language: 语言选择（"cn"中文，其他为英文）
-    :return: 如果s_time为None则返回当前时间，否则返回None
+    :param return_duration: 
+        是否返回持续时间，默认为False,
+        如果为True，则返回持续时间（小时、分钟、秒）
+    :return: 如果s_time为None则返回当前时间
     """
     # 获取当前时间并转换为北京时间
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
@@ -143,6 +146,12 @@ def time_diff(s_time = None, max_num = 0, language = "cn") :
                                                         e_time.strftime( "%Y-%m-%d %H:%M" ) ) )
             print( "Total time: {}，Total minutes: {}，Number: {}，Average time: {} minutes".format( result, minutes, 
                                                                                                    max_num, 
-                                                                                                   eve_minutes ) )
+                                                                                                       eve_minutes ) )
+    if return_duration:
+        return hours, duration_minutes, seconds
+    return 
 
-    return
+# 监控程序的执行时间
+def monitor_execution_time():
+    s_time = datetime.now( timezone( timedelta( hours = 8 ) ) )
+    hours, duration_minutes, seconds = time_diff( s_time, return_duration=True) # pyright: ignore[reportGeneralTypeIssues]
