@@ -123,9 +123,10 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = Fal
 
     e_time = now
     duration = e_time - s_time
-    hours = duration.seconds // 3600
-    duration_minutes = (duration.seconds % 3600) // 60
-    seconds = duration.seconds % 60
+    total_seconds = int(duration.total_seconds())
+    hours = total_seconds // 3600
+    duration_minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
     result = f"{hours:02d}:{duration_minutes:02d}:{seconds:02d}"
 
     # 将时间差转化为分钟
@@ -148,10 +149,36 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = Fal
                                                                                                    max_num, 
                                                                                                        eve_minutes ) )
     if return_duration:
-        return hours, duration_minutes, seconds
+        return total_seconds
     return 
 
 # 监控程序的执行时间
-def monitor_execution_time():
+def monitor_execution_time(warning_threshold=None, always_print=False, func=None, *args, **kwargs):
+    """
+    监控函数执行时间，并返回函数的执行结果
+    
+    :param warning_threshold: 警告阈值（秒），如果执行耗时超过此值则打印警告
+    :param always_print: 是否始终打印耗时信息，如果为True则不监控阈值
+    :param func: 要监控的函数
+    :param args: 函数的位置参数
+    :param kwargs: 函数的关键字参数
+    :return: 如果传入函数，则返回函数的执行结果；否则返回开始时间
+    """
     s_time = datetime.now( timezone( timedelta( hours = 8 ) ) )
-    hours, duration_minutes, seconds = time_diff( s_time, return_duration=True) # pyright: ignore[reportGeneralTypeIssues]
+    
+    if func is None:
+        return s_time
+    
+    # 执行函数并获取结果
+    result = func(*args, **kwargs)
+    
+    # 计算执行时间
+    total_seconds = time_diff(s_time, return_duration=True) # pyright: ignore[reportGeneralTypeIssues]
+    
+    # 打印耗时信息
+    if always_print:
+        print(f"函数 {func.__name__} 执行耗时: {total_seconds:.2f}秒")
+    elif warning_threshold is not None and total_seconds > warning_threshold:
+        print(f"警告: 函数 {func.__name__} 执行耗时 {total_seconds:.2f}秒，超过阈值 {warning_threshold}秒")
+    
+    return result
