@@ -167,10 +167,10 @@ for i in range(1, 101):
 
 ### 执行时间监控
 
-使用`monitor_execution_time`函数监控函数执行时间：
+使用`time_monitor`函数监控函数执行时间：
 
 ```python
-from funcguard import monitor_execution_time
+from funcguard import time_monitor
 
 def some_function():
     # 模拟一个耗时操作
@@ -179,14 +179,14 @@ def some_function():
     return "操作完成"
 
 # 模式1：总是打印执行时间
-result = monitor_execution_time(
+result = time_monitor(
     func=some_function,
     print_mode=1
 )
 print(f"结果: {result}")
 
 # 模式2：仅在超过阈值时打印警告
-result = monitor_execution_time(
+result = time_monitor(
     func=some_function,
     warning_threshold=1.5,  # 设置1.5秒的警告阈值
     print_mode=2
@@ -194,7 +194,7 @@ result = monitor_execution_time(
 print(f"结果: {result}")
 
 # 模式0：不打印任何信息，仅返回结果和执行时间
-result, duration = monitor_execution_time(
+result, duration = time_monitor(
     func=some_function,
     print_mode=0
 )
@@ -279,7 +279,7 @@ print(f"结果: {result}, 耗时: {duration}秒")
   - 否则返回None
 - **功能**: 计算并打印任务执行时间统计信息，支持中英文双语输出
 
-#### monitor_execution_time(warning_threshold=None, print_mode=2, func=None, *args, **kwargs)
+#### time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwargs)
 
 - **参数**:
   - `warning_threshold`: 警告阈值（秒），如果执行耗时超过此值则打印警告，默认为None

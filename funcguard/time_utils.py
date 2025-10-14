@@ -97,7 +97,7 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = 1) 
 
 
 # 监控程序的执行时间
-def monitor_execution_time(warning_threshold=None, print_mode=2, func=None, *args, **kwargs):
+def time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwargs):
     """
     监控函数执行时间，并返回函数的执行结果和执行时间
     
