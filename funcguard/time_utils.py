@@ -41,7 +41,7 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
 
 
 # 计算持续时间
-def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = False) :
+def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = 0) :
     """
     计算并打印任务执行时间统计信息
     
@@ -49,8 +49,10 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = Fal
     :param max_num: 任务数量
     :param language: 语言选择（"cn"中文，其他为英文）
     :param return_duration: 
-        是否返回持续时间，默认为False,
-        如果为True，则返回持续时间（小时、分钟、秒）
+        返回模式，默认为0,
+        0，不返回持续时间（total_seconds），仅打印信息
+        1，仅返回 total_seconds
+        2，print 信息，并返回 total_seconds
     :return: 如果s_time为None则返回当前时间
     """
     # 获取当前时间并转换为北京时间
@@ -62,6 +64,9 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = Fal
     e_time = now
     duration = e_time - s_time
     total_seconds = int(duration.total_seconds())
+    if return_duration == 1:
+        return total_seconds
+
     hours = total_seconds // 3600
     duration_minutes = (total_seconds % 3600) // 60
     seconds = total_seconds % 60
@@ -86,7 +91,7 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = Fal
             print( "Total time: {}，Total minutes: {}，Number: {}，Average time: {} minutes".format( result, minutes, 
                                                                                                    max_num, 
                                                                                                        eve_minutes ) )
-    if return_duration:
+    if return_duration == 2:
         return total_seconds
     return 
 
@@ -104,7 +109,10 @@ def monitor_execution_time(warning_threshold=None, print_mode=2, func=None, *arg
     :param func: 要监控的函数
     :param args: 函数的位置参数
     :param kwargs: 函数的关键字参数
-    :return: 元组 (result, total_seconds) - 函数的执行结果和执行时间（秒）
+    :return: 
+        print_mode == 0: 函数的执行结果, total_seconds
+        print_mode == 1: 函数的执行结果
+        print_mode == 2: 函数的执行结果
     """
     s_time = datetime.now( timezone( timedelta( hours = 8 ) ) )
     
@@ -115,13 +123,18 @@ def monitor_execution_time(warning_threshold=None, print_mode=2, func=None, *arg
     result = func(*args, **kwargs)
     
     # 计算执行时间
-    total_seconds = time_diff(s_time, return_duration=True) # pyright: ignore[reportGeneralTypeIssues]
+    if print_mode == 1 :
+        return_duration = 0
+    else:
+        return_duration = 2
+    total_seconds = time_diff(s_time, return_duration=return_duration) # pyright: ignore[reportGeneralTypeIssues]
     
     # 根据打印模式决定是否打印耗时信息
     if print_mode == 1:
         print(f"函数 {func.__name__} 执行耗时: {total_seconds:.2f}秒")
     elif print_mode == 2 and warning_threshold is not None and total_seconds > warning_threshold:
         print(f"警告: 函数 {func.__name__} 执行耗时 {total_seconds:.2f}秒，超过阈值 {warning_threshold}秒")
-    # print_mode == 0 时不打印任何信息
+    elif print_mode == 0:
+        return result, total_seconds
     
-    return result, total_seconds
+    return result

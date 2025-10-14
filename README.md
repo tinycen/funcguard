@@ -9,6 +9,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - HTTP请求封装（支持自动重试）
 - 格式化打印工具（分隔线和块打印）
 - 时间日志记录和耗时统计
+- 函数执行时间监控和警告
 
 ## 安装/升级
 
@@ -164,12 +165,49 @@ for i in range(1, 101):
 
 ```
 
+### 执行时间监控
+
+使用`monitor_execution_time`函数监控函数执行时间：
+
+```python
+from funcguard import monitor_execution_time
+
+def some_function():
+    # 模拟一个耗时操作
+    import time
+    time.sleep(2)
+    return "操作完成"
+
+# 模式1：总是打印执行时间
+result = monitor_execution_time(
+    func=some_function,
+    print_mode=1
+)
+print(f"结果: {result}")
+
+# 模式2：仅在超过阈值时打印警告
+result = monitor_execution_time(
+    func=some_function,
+    warning_threshold=1.5,  # 设置1.5秒的警告阈值
+    print_mode=2
+)
+print(f"结果: {result}")
+
+# 模式0：不打印任何信息，仅返回结果和执行时间
+result, duration = monitor_execution_time(
+    func=some_function,
+    print_mode=0
+)
+print(f"结果: {result}, 耗时: {duration}秒")
+```
+
 时间日志功能特点：
 - 自动显示北京时间（UTC+8）
 - 支持进度显示和预计完成时间计算
 - 提供中英文双语统计信息
 - 可显示总耗时、平均耗时等详细统计
 - 支持i从0或从1开始的计数方式
+- 支持函数执行时间监控和警告
 
 ## API文档
 
@@ -223,14 +261,39 @@ for i in range(1, 101):
 - **返回值**: 无
 - **功能**: 打印带时间戳的日志信息，支持进度显示和预计完成时间计算
 
-#### time_diff(s_time=None, max_num=0, language="cn")
+#### time_diff(s_time=None, max_num=0, language="cn", return_duration=0)
 
 - **参数**:
   - `s_time`: 开始时间，默认为None
   - `max_num`: 任务数量，默认为0
   - `language`: 语言选择（"cn"中文，其他为英文），默认为"cn"
-- **返回值**: 如果s_time为None则返回当前时间，否则返回None
+  - `return_duration`: 返回模式，默认为0:
+    - 0 - 不返回持续时间（total_seconds），仅打印信息
+    - 1 - 仅返回 total_seconds
+    - 2 - 打印信息，并返回 total_seconds
+- **返回值**: 
+  - 如果s_time为None则返回当前时间
+  - 如果return_duration为1或2则返回持续时间（秒）
+  - 否则返回None
 - **功能**: 计算并打印任务执行时间统计信息，支持中英文双语输出
+
+#### monitor_execution_time(warning_threshold=None, print_mode=2, func=None, *args, **kwargs)
+
+- **参数**:
+  - `warning_threshold`: 警告阈值（秒），如果执行耗时超过此值则打印警告，默认为None
+  - `print_mode`: 打印模式，支持三种模式:
+    - 0 - 仅返回total_seconds，不打印任何信息
+    - 1 - 总是打印执行时间
+    - 2 - 仅在超时打印警告信息（默认）
+  - `func`: 要监控的函数
+  - `args`: 函数的位置参数
+  - `kwargs`: 函数的关键字参数
+- **返回值**: 
+  - print_mode == 0: 元组 (result, total_seconds) - 函数的执行结果和执行时间（秒）
+  - print_mode == 1: 函数的执行结果
+  - print_mode == 2: 函数的执行结果
+- **功能**: 监控函数执行时间，并返回函数的执行结果和执行时间
+- **注意**: 内部使用 time_diff 函数，根据 print_mode 自动设置 return_duration 参数
 
 ### funcguard.printer
 
