@@ -3,6 +3,7 @@ import requests
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, Union
 from .core import retry_function
+from .time_utils import time_log, time_diff, monitor_execution_time
 
 
 # 发起请求
@@ -64,121 +65,4 @@ def send_request(
         return response
     else:
         result = response.text
-    return result
-
-
-# 打印时间
-def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
-    """
-    打印带时间戳的日志信息，支持进度显示和预计完成时间
-    
-    :param message: 日志消息
-    :param i: 当前进度
-    :param max_num: 总进度数量
-    :param s_time: 开始时间，用于计算预计完成时间
-    :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
-    :return: None
-    """
-    now = datetime.now( timezone( timedelta( hours = 8 ) ) )
-    time_log = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
-    if i < 2 or max_num < 2 :
-        print( time_log + " " + message )
-
-    else :
-        # 根据start_from参数计算实际处理的项目数
-        process_item = i + 1 if start_from == 0 else i
-        text = "{}/{}".format( process_item, max_num )
-        # 检查是否应该显示预计完成时间和剩余时间
-        if process_item % 10 == 0 and s_time is not None and process_item < max_num :
-            duration = now - s_time
-            ev_duration = duration / process_item  # 每项平均耗时
-            remaining_items = max_num - process_item
-            time_left = ev_duration * remaining_items
-            end_time = now + time_left
-            end_time_str = end_time.strftime( "%Y-%m-%d %H:%M" )
-            remaining_time_str = str( timedelta( seconds = int( time_left.total_seconds() ) ) )
-            text = text + "（{}）etr {}".format( end_time_str, remaining_time_str )
-        print( time_log + " " + message + " " + text )
-    return
-
-
-# 计算持续时间
-def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = False) :
-    """
-    计算并打印任务执行时间统计信息
-    
-    :param s_time: 开始时间
-    :param max_num: 任务数量
-    :param language: 语言选择（"cn"中文，其他为英文）
-    :param return_duration: 
-        是否返回持续时间，默认为False,
-        如果为True，则返回持续时间（小时、分钟、秒）
-    :return: 如果s_time为None则返回当前时间
-    """
-    # 获取当前时间并转换为北京时间
-    now = datetime.now( timezone( timedelta( hours = 8 ) ) )
-
-    if s_time is None :
-        return now
-
-    e_time = now
-    duration = e_time - s_time
-    total_seconds = int(duration.total_seconds())
-    hours = total_seconds // 3600
-    duration_minutes = (total_seconds % 3600) // 60
-    seconds = total_seconds % 60
-    result = f"{hours:02d}:{duration_minutes:02d}:{seconds:02d}"
-
-    # 将时间差转化为分钟
-    minutes = round( duration.total_seconds() / 60 )
-    if max_num == 0 :
-        if language == "cn" :
-            print( "总耗时：{:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ) )
-        else :
-            print( "Total time: {:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ) )
-    else :
-        eve_minutes = round( minutes / max_num, 3 )
-        if language == "cn" :
-            print( "开始时间：{}，结束时间：{}".format( s_time.strftime( "%Y-%m-%d %H:%M" ), 
-                                                     e_time.strftime( "%Y-%m-%d %H:%M" ) ) )
-            print( "总耗时：{}，累计：{}分钟，数量；{}，平均耗时：{}分钟".format( result, minutes, max_num, eve_minutes ) )
-        else :
-            print( "Start time：{}，End time：{}".format( s_time.strftime( "%Y-%m-%d %H:%M" ), 
-                                                        e_time.strftime( "%Y-%m-%d %H:%M" ) ) )
-            print( "Total time: {}，Total minutes: {}，Number: {}，Average time: {} minutes".format( result, minutes, 
-                                                                                                   max_num, 
-                                                                                                       eve_minutes ) )
-    if return_duration:
-        return total_seconds
-    return 
-
-# 监控程序的执行时间
-def monitor_execution_time(warning_threshold=None, always_print=False, func=None, *args, **kwargs):
-    """
-    监控函数执行时间，并返回函数的执行结果
-    
-    :param warning_threshold: 警告阈值（秒），如果执行耗时超过此值则打印警告
-    :param always_print: 是否始终打印耗时信息，如果为True则不监控阈值
-    :param func: 要监控的函数
-    :param args: 函数的位置参数
-    :param kwargs: 函数的关键字参数
-    :return: 如果传入函数，则返回函数的执行结果；否则返回开始时间
-    """
-    s_time = datetime.now( timezone( timedelta( hours = 8 ) ) )
-    
-    if func is None:
-        return s_time
-    
-    # 执行函数并获取结果
-    result = func(*args, **kwargs)
-    
-    # 计算执行时间
-    total_seconds = time_diff(s_time, return_duration=True) # pyright: ignore[reportGeneralTypeIssues]
-    
-    # 打印耗时信息
-    if always_print:
-        print(f"函数 {func.__name__} 执行耗时: {total_seconds:.2f}秒")
-    elif warning_threshold is not None and total_seconds > warning_threshold:
-        print(f"警告: 函数 {func.__name__} 执行耗时 {total_seconds:.2f}秒，超过阈值 {warning_threshold}秒")
-    
     return result
