@@ -17,9 +17,6 @@ def print_progress_bar(idx: int, total: int) -> None:
     percent = int(idx / total * 100)
     
     # 构建进度条：
-    # - 已完成部分：█字符，数量为percent//2
-    # - 未完成部分：-字符，数量为50-percent//2
-    # 这样100%进度正好对应50个█字符，填满整个进度条
     bar = '█' * (percent // 2) + '-' * (50 - percent // 2)
     
     # 打印进度条：
