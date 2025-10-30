@@ -1,7 +1,7 @@
 from typing import Any
 
 # 打印进度条
-def print_progress_bar(idx: int, total: int) -> None:
+def print_progress(idx: int, total: int) -> None:
     """
     打印进度条，显示当前进度
     
