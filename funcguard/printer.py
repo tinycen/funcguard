@@ -1,7 +1,7 @@
 from typing import Any
 
 # 打印进度条
-def print_progress(idx: int, total: int) -> None:
+def print_progress(idx: int, total: int, message: str = "") -> None:
     """
     打印进度条，显示当前进度
     
@@ -12,6 +12,7 @@ def print_progress(idx: int, total: int) -> None:
     
     :param idx: 当前索引（从0开始）
     :param total: 总数量
+    :param message: 额外消息，默认为空字符串
     """
     # 计算当前进度百分比（0-100）
     percent = int(idx / total * 100)
@@ -23,7 +24,7 @@ def print_progress(idx: int, total: int) -> None:
     # - \r：回车符，回到行首覆盖之前的内容
     # - end=''：不换行，保持在同一行更新
     # - flush=True：立即刷新输出，确保实时显示
-    print(f"\r进度: |{bar}| {percent}% ({idx}/{total})", end='', flush=True)
+    print(f"\r进度: |{bar}| {percent}% ({idx}/{total}) {message}", end='', flush=True)
 
 
 # 打印带等号的标题（如：=== 初始化分类器 ===）

@@ -40,11 +40,11 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
 
             #  Estimated Time of Arrival（预计完成/到达时间）
             if return_field == "end_time" :
-                return f" eta {end_time_str}"   
-                
+                return f"eta {end_time_str}"   
+
             # Estimated Time Remaining（预计剩余时间）
             elif return_field == "remaining_time" :
-                return f" etr {remaining_time_str}" 
+                return f"etr {remaining_time_str}" 
 
             progress_info = progress_info + "（{}）etr {}".format( end_time_str, remaining_time_str )
 
