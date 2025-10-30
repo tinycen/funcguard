@@ -18,14 +18,14 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
     :return: None
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
-    time_log = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
+    time_str = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
     if i < 2 or max_num < 2 :
-        print( time_log + " " + message )
+        print( time_str + " " + message )
 
     else :
         # 根据start_from参数计算实际处理的项目数
         process_item = i + 1 if start_from == 0 else i
-        text = "{}/{}".format( process_item, max_num )
+        progress_info = "{}/{}".format( process_item, max_num )
         # 检查是否应该显示预计完成时间和剩余时间
         if process_item % 10 == 0 and s_time is not None and process_item < max_num :
             duration = now - s_time
@@ -35,8 +35,8 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
             end_time = now + time_left
             end_time_str = end_time.strftime( "%Y-%m-%d %H:%M" )
             remaining_time_str = str( timedelta( seconds = int( time_left.total_seconds() ) ) )
-            text = text + "（{}）etr {}".format( end_time_str, remaining_time_str )
-        print( time_log + " " + message + " " + text )
+            progress_info = progress_info + "（{}）etr {}".format( end_time_str, remaining_time_str )
+        print( time_str + " " + message + " " + progress_info )
     return
 
 
