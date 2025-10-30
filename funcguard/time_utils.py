@@ -22,7 +22,10 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
     time_str = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
     progress_info = ""
     if i < 2 or max_num < 2 :
-        print( time_str + " " + message )
+        if return_field in ["end_time", "remaining_time"] :
+            return ""
+        else:
+            print( time_str + " " + message )
 
     else :
         # 根据start_from参数计算实际处理的项目数
