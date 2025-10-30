@@ -2,7 +2,6 @@
 时间工具模块，提供时间计算、日志记录和执行时间监控功能
 """
 from datetime import datetime, timezone, timedelta
-from typing import Optional, Union
 
 
 # 打印时间
@@ -15,10 +14,11 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
     :param max_num: 总进度数量
     :param s_time: 开始时间，用于计算预计完成时间
     :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
-    :return: None
+    :return: progress_info 进度信息
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
     time_str = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
+    progress_info = ""
     if i < 2 or max_num < 2 :
         print( time_str + " " + message )
 
@@ -37,7 +37,7 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 ) :
             remaining_time_str = str( timedelta( seconds = int( time_left.total_seconds() ) ) )
             progress_info = progress_info + "（{}）etr {}".format( end_time_str, remaining_time_str )
         print( time_str + " " + message + " " + progress_info )
-    return
+    return progress_info
 
 
 # 计算持续时间
