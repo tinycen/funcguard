@@ -1,5 +1,34 @@
 from typing import Any
 
+# 打印进度条
+def print_progress_bar(idx: int, total: int) -> None:
+    """
+    打印进度条，显示当前进度
+    
+    设计原理：
+    - 进度条总长度固定为50个字符，这是终端显示的最佳长度
+    - 使用整除2(//2)将0-100%映射到0-50字符，确保平滑过渡
+    - 已完成部分用'█'表示，未完成部分用'-'表示
+    
+    :param idx: 当前索引（从0开始）
+    :param total: 总数量
+    """
+    # 计算当前进度百分比（0-100）
+    percent = int(idx / total * 100)
+    
+    # 构建进度条：
+    # - 已完成部分：█字符，数量为percent//2
+    # - 未完成部分：-字符，数量为50-percent//2
+    # 这样100%进度正好对应50个█字符，填满整个进度条
+    bar = '█' * (percent // 2) + '-' * (50 - percent // 2)
+    
+    # 打印进度条：
+    # - \r：回车符，回到行首覆盖之前的内容
+    # - end=''：不换行，保持在同一行更新
+    # - flush=True：立即刷新输出，确保实时显示
+    print(f"\r进度: |{bar}| {percent}% ({idx}/{total})", end='', flush=True)
+
+
 # 打印带等号的标题（如：=== 初始化分类器 ===）
 def print_title(title: str, separator_char: str = "=", padding_length: int = 3) -> None:
     """
