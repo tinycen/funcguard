@@ -8,6 +8,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 函数执行失败自动重试
 - HTTP请求封装（支持自动重试）
 - 格式化打印工具（分隔线和块打印）
+- 进度条显示功能
 - 时间日志记录和耗时统计
 - 函数执行时间监控和警告
 
@@ -97,10 +98,10 @@ print(response)
 
 ### 格式化打印
 
-使用`print_line`、`print_block`和`print_title`函数进行格式化打印，便于查看和调试：
+使用`print_line`、`print_block`、`print_title`和`print_progress`函数进行格式化打印，便于查看和调试：
 
 ```python
-from funcguard import print_line, print_block, print_title
+from funcguard import print_line, print_block, print_title, print_progress
 
 # 打印带等号的标题
 print_title("初始化分类器")  # 输出：=== 初始化分类器 ===
@@ -123,6 +124,13 @@ result = {
     "message": "操作完成"
 }
 print_block("API响应", result)
+
+# 打印进度条
+for i in range(101):
+    import time
+    time.sleep(0.05)  # 模拟处理时间
+    print_progress(i, 100, "处理中")  # 显示进度条和处理状态
+print()  # 处理完成后换行
 ```
 
 ### 时间日志记录
@@ -164,6 +172,50 @@ for i in range(1, 101):
         time_log(f"处理进度", i, 100, start_time, 1)  # 显示进度和预计完成时间
 
 ```
+
+### 组合示例用法
+
+在实际应用中，可以组合使用`time_log`和`print_progress`来显示处理进度和剩余时间：
+
+```python
+from funcguard import time_diff, time_log, print_progress
+import pandas as pd
+
+def process_images(images):
+    """处理图片的示例函数"""
+    # 模拟图片处理
+    import time
+    time.sleep(0.1)
+    return f"processed_{images}"
+
+# 假设df是一个包含图片数据的DataFrame
+df = pd.DataFrame({"images": [f"img_{i}.jpg" for i in range(100)]})
+
+# 获取开始时间
+s_time = time_diff() 
+processed_images_list = [] 
+max_num = len(df) 
+
+# 处理每一行数据
+for index, row in df.iterrows(): 
+    processed_images_list.append(process_images(row["images"])) 
+    
+    # 获取剩余时间并显示进度条
+    remaining_time = time_log("", index, max_num, s_time, return_field="remaining_time") 
+    print_progress(index, max_num, remaining_time) 
+
+# 更新DataFrame中的图片数据
+df["images"] = processed_images_list 
+
+# 打印处理完成后的统计信息
+time_diff(s_time, max_num)
+```
+
+这个组合示例展示了如何：
+1. 使用`time_diff()`获取开始时间
+2. 在循环中使用`time_log`获取剩余时间（通过`return_field="remaining_time"`参数）
+3. 使用`print_progress`显示进度条和剩余时间
+4. 最后使用`time_diff`打印完整的处理统计信息
 
 ### 执行时间监控
 
@@ -252,7 +304,7 @@ print(f"结果: {result}, 耗时: {duration}秒")
 
 ### funcguard.time_utils
 
-#### time_log(message, i=0, max_num=0, s_time=None, start_from=0)
+#### time_log(message, i=0, max_num=0, s_time=None, start_from=0, return_field="progress_info")
 
 - **参数**:
   - `message`: 日志消息
@@ -260,7 +312,13 @@ print(f"结果: {result}, 耗时: {duration}秒")
   - `max_num`: 总进度数量，默认为0
   - `s_time`: 开始时间，用于计算预计完成时间，默认为None
   - `start_from`: i是否从0开始，0表示从0开始，1表示从1开始，默认为0
-- **返回值**: 无
+  - `return_field`: 返回字段，支持以下：
+    - "progress_info" 表示完整进度信息（默认）
+    - "remaining_time" 表示剩余时间
+    - "end_time" 表示预计完成时间
+- **返回值**: 
+  - 根据return_field参数返回不同的信息
+  - 默认情况下打印带时间戳的日志信息并返回进度信息
 - **功能**: 打印带时间戳的日志信息，支持进度显示和预计完成时间计算
 
 #### time_diff(s_time=None, max_num=0, language="cn", return_duration=1)
@@ -327,6 +385,19 @@ print(f"结果: {result}, 耗时: {duration}秒")
   - `separator_length`: 分隔符长度，默认为40
 - **返回值**: 无
 - **功能**: 使用分隔符打印标题和内容，便于查看
+
+#### print_progress(idx: int, total: int, message: str = "") -> None
+
+- **参数**:
+  - `idx`: 当前索引（从0开始）
+  - `total`: 总数量
+  - `message`: 额外消息，默认为空字符串
+- **返回值**: 无
+- **功能**: 打印进度条，显示当前进度，设计原理：
+  - 进度条总长度固定为50个字符，这是终端显示的最佳长度
+  - 使用整除2(//2)将0-100%映射到0-50字符，确保平滑过渡
+  - 已完成部分用'█'表示，未完成部分用'-'表示
+  - 使用\r回到行首覆盖之前的内容，保持在同一行更新
 
 ## 许可证
 
