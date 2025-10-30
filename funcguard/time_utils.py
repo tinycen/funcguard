@@ -46,7 +46,7 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
             remaining_time_str = str( timedelta( seconds = int( time_left.total_seconds() ) ) )
             eta_time_info = f"eta {end_time_str}"
             etr_time_info = f"etr {remaining_time_str}"
-            progress_info = progress_info + f" ( {eta_time_info}  {etr_time_info} )"
+            progress_info = progress_info + f" ( {eta_time_info} | {etr_time_info} )"
 
         #  Estimated Time of Arrival（预计完成/到达时间）
         if return_field == "end_time" :
