@@ -20,7 +20,7 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
     time_str = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
-    progress_info = ""
+    progress_info = eta_time_info = etr_time_info = ""
     if i < 2 or max_num < 2 :
         if return_field in ["end_time", "remaining_time"] :
             return ""
@@ -32,7 +32,11 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
         process_item = i + 1 if start_from == 0 else i
         progress_info = "{}/{}".format( process_item, max_num )
         # 检查是否应该显示预计完成时间和剩余时间
-        if process_item % 10 == 0 and s_time is not None and process_item < max_num :
+        # 当return_field为"end_time"或"remaining_time"时，每次都计算时间
+        # 否则只在每10个处理一次时计算
+        should_calculate_time = (return_field in ["end_time", "remaining_time"] and process_item < max_num ) or (process_item % 10 == 0 and s_time is not None and process_item < max_num)
+        
+        if should_calculate_time and s_time is not None and process_item < max_num:
             duration = now - s_time
             ev_duration = duration / process_item  # 每项平均耗时
             remaining_items = max_num - process_item
@@ -40,16 +44,17 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
             end_time = now + time_left
             end_time_str = end_time.strftime( "%Y-%m-%d %H:%M" )
             remaining_time_str = str( timedelta( seconds = int( time_left.total_seconds() ) ) )
+            eta_time_info = f"eta {end_time_str}"
+            etr_time_info = f"etr {remaining_time_str}"
+            progress_info = progress_info + f" ( {eta_time_info}  {etr_time_info} )"
 
-            #  Estimated Time of Arrival（预计完成/到达时间）
-            if return_field == "end_time" :
-                return f"eta {end_time_str}"   
-
-            # Estimated Time Remaining（预计剩余时间）
-            elif return_field == "remaining_time" :
-                return f"etr {remaining_time_str}" 
-
-            progress_info = progress_info + "（{}）etr {}".format( end_time_str, remaining_time_str )
+        #  Estimated Time of Arrival（预计完成/到达时间）
+        if return_field == "end_time" :
+            return eta_time_info   
+        
+        # Estimated Time Remaining（预计剩余时间）
+        elif return_field == "remaining_time" :
+            return etr_time_info
 
         print( time_str + " " + message + " " + progress_info )
     return progress_info
