@@ -11,6 +11,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 进度条显示功能
 - 时间日志记录和耗时统计
 - 函数执行时间监控和警告
+- IP地址检测（局域网IP和公网IP）
 
 ## 安装/升级
 
@@ -135,6 +136,13 @@ print()  # 处理完成后换行
 
 ### 时间日志记录
 
+- 自动显示北京时间（UTC+8）
+- 支持进度显示和预计完成时间计算
+- 提供中英文双语统计信息
+- 可显示总耗时、平均耗时等详细统计
+- 支持i从0或从1开始的计数方式
+- 支持函数执行时间监控和警告
+
 使用`time_log`和`time_diff`函数记录任务执行时间和统计信息：
 
 ```python
@@ -160,7 +168,6 @@ time_diff(start_time, 100, "cn")  # 中文显示统计信息
 或者当i从1开始时：
 
 ```python
-
 # 记录任务开始（i从1开始）
 time_log("开始处理数据", 1, 100, start_time, 1)
 
@@ -253,13 +260,34 @@ result, duration = time_monitor(
 print(f"结果: {result}, 耗时: {duration}秒")
 ```
 
-时间日志功能特点：
-- 自动显示北京时间（UTC+8）
-- 支持进度显示和预计完成时间计算
-- 提供中英文双语统计信息
-- 可显示总耗时、平均耗时等详细统计
-- 支持i从0或从1开始的计数方式
-- 支持函数执行时间监控和警告
+### IP地址检测
+
+使用IP检测功能获取本机局域网IP、公网IP以及验证IP地址格式：
+
+```python
+from funcguard import get_local_ip, get_public_ip, get_ip_info, is_valid_ip
+
+# 获取本机局域网IP地址
+local_ip = get_local_ip()
+print(f"本机局域网IP: {local_ip}")
+
+# 获取本机公网IP地址
+public_ip = get_public_ip()
+print(f"本机公网IP: {public_ip}")
+
+# 获取完整的IP信息（包括局域网IP、公网IP和主机名）
+ip_info = get_ip_info()
+print(f"主机名: {ip_info['hostname']}")
+print(f"局域网IP: {ip_info['local_ip']}")
+print(f"公网IP: {ip_info['public_ip']}")
+
+# 验证IP地址格式是否有效
+test_ips = ["192.168.1.1", "256.1.1.1", "abc.def.ghi.jkl"]
+for ip in test_ips:
+    is_valid = is_valid_ip(ip)
+    print(f"IP地址 '{ip}' 验证结果: {is_valid}")
+```
+
 
 ## API文档
 
@@ -356,6 +384,33 @@ print(f"结果: {result}, 耗时: {duration}秒")
 - **注意**: 该方法内部使用 time_diff 函数，根据 print_mode 自动设置 return_duration 参数
   - print_mode 为 0 或 2 时，设置 return_duration=0（ time_diff 仅返回total_seconds，不打印信息）
   - print_mode 为 1 时，设置 return_duration=2（ time_diff 打印信息，并返回total_seconds）
+
+### funcguard.ip_utils
+
+#### get_local_ip()
+
+- **参数**: 无
+- **返回值**: 本机局域网IP地址字符串，如果获取失败返回None
+- **功能**: 获取本机局域网IP地址，通过创建UDP socket连接外部地址来获取本机IP
+
+#### get_public_ip()
+
+- **参数**: 无
+- **返回值**: 公网IP地址字符串，如果获取失败返回None
+- **功能**: 获取本机公网IP地址，使用多个IP查询服务作为备选（ipify.org、ipapi.co、ifconfig.me等），自动验证返回的IP地址格式
+
+#### is_valid_ip(ip_string)
+
+- **参数**:
+  - `ip_string`: 要验证的IP地址字符串
+- **返回值**: 如果是有效的IP地址返回True，否则返回False
+- **功能**: 验证字符串是否为有效的IP地址，检查IP地址格式（4个部分，每部分0-255）
+
+#### get_ip_info()
+
+- **参数**: 无
+- **返回值**: 包含IP信息的字典，格式为`{'local_ip': '...', 'public_ip': '...', 'hostname': '...'}`
+- **功能**: 获取本机IP地址信息（包括局域网IP、公网IP和主机名）
 
 ### funcguard.printer
 
