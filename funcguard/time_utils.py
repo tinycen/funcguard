@@ -1,6 +1,7 @@
 """
 时间工具模块，提供时间计算、日志记录和执行时间监控功能
 """
+import time
 from datetime import datetime, timezone, timedelta
 
 
@@ -162,3 +163,15 @@ def time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwarg
         return result, total_seconds
     
     return result
+
+
+# 时间等待
+def time_wait(seconds: int = 10):
+    """
+    等待指定的秒数，显示倒计时
+    
+    :param seconds: 等待的秒数，默认值为10秒
+    """
+    for remaining in range(seconds, 0, -1):
+        print(f"\rTime wait: {remaining}s ", end="", flush=True)
+        time.sleep(1)

@@ -12,6 +12,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 时间日志记录和耗时统计
 - 函数执行时间监控和警告
 - IP地址检测（局域网IP和公网IP）
+- 时间等待功能（带倒计时显示）
 
 ## 安装/升级
 
@@ -224,6 +225,24 @@ time_diff(s_time, max_num)
 3. 使用`print_progress`显示进度条和剩余时间
 4. 最后使用`time_diff`打印完整的处理统计信息
 
+### 时间等待
+
+使用`time_wait`函数进行带倒计时显示的时间等待：
+
+```python
+from funcguard import time_wait
+
+# 等待10秒，显示倒计时
+print("开始等待...")
+time_wait(10)  # 显示倒计时：Time wait: 10s, 9s, 8s...
+print("等待完成！")
+
+# 等待5秒
+print("准备开始下一步操作...")
+time_wait(5)
+print("开始执行下一步操作")
+```
+
 ### 执行时间监控
 
 使用`time_monitor`函数监控函数执行时间：
@@ -384,6 +403,13 @@ for ip in test_ips:
 - **注意**: 该方法内部使用 time_diff 函数，根据 print_mode 自动设置 return_duration 参数
   - print_mode 为 0 或 2 时，设置 return_duration=0（ time_diff 仅返回total_seconds，不打印信息）
   - print_mode 为 1 时，设置 return_duration=2（ time_diff 打印信息，并返回total_seconds）
+
+#### time_wait(seconds: int = 10)
+
+- **参数**:
+  - `seconds`: 等待的秒数，默认值为10秒
+- **返回值**: 无
+- **功能**: 等待指定的秒数，显示倒计时
 
 ### funcguard.ip_utils
 
