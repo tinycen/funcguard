@@ -175,3 +175,5 @@ def time_wait(seconds: int = 10):
     for remaining in range(seconds, 0, -1):
         print(f"\rTime wait: {remaining}s ", end="", flush=True)
         time.sleep(1)
+    # 换行
+    print()
