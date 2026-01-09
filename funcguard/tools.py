@@ -1,7 +1,18 @@
 import json
+import base64
 import requests
 from typing import Optional, Dict, Any, Union
 from .core import retry_function
+
+
+ # 生成 base64 格式的 Basic Auth 字符串
+def encode_basic_auth(username, password):
+    # 将 Username 和 Password 拼接成字符串
+    auth_str = f'{username}:{password}'
+
+    # 对字符串进行 base64 编码，并添加 'Basic ' 前缀
+    auth_value = f'Basic {base64.b64encode( auth_str.encode() ).decode()}'
+    return auth_value
 
 
 # 发起请求

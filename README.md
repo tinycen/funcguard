@@ -336,7 +336,16 @@ for ip in test_ips:
 - **返回值**: func的返回值
 - **异常**: 当重试次数用尽后仍然失败时，抛出最后一次的异常
 
+
 ### funcguard.tools
+
+#### encode_basic_auth(username, password)
+
+- **参数**:
+  - `username`: 用户名字符串
+  - `password`: 密码字符串
+- **返回值**: 用于HTTP Basic认证的Authorization头部字符串，格式为`Basic xxxxx`（base64编码）
+- **功能**: 生成符合HTTP Basic认证要求的Authorization头部内容，常用于需要用户名和密码认证的HTTP请求。
 
 #### send_request(method, url, headers, data=None, return_type="json", timeout=60, auto_retry=None)
 
