@@ -4,8 +4,9 @@ import requests
 from typing import Optional, Dict, Any, Union
 from .core import retry_function
 
+# 生成 base64 格式的 Basic Auth 字符串
 
- # 生成 base64 格式的 Basic Auth 字符串
+
 def encode_basic_auth(username, password):
     # 将 Username 和 Password 拼接成字符串
     auth_str = f'{username}:{password}'
@@ -19,7 +20,7 @@ def encode_basic_auth(username, password):
 def send_request(
     method: str,
     url: str,
-    headers: Dict[str, str],
+    headers: Optional[Dict[str, str]] = None,
     data: Optional[Any] = None,
     return_type: str = "json",
     timeout: int = 60,
@@ -41,10 +42,20 @@ def send_request(
     if data is None:
         payload = {}
     else:
-        if (isinstance(data, dict) or isinstance(data, list)) and data != {}:
+        if data and isinstance(data, dict):
+            payload = json.dumps(data, ensure_ascii=False)
+            if headers is None:
+                headers = {"Content-Type": "application/json"}
+            elif "Content-Type" not in headers:
+                headers["Content-Type"] = "application/json"
+        elif data and isinstance(data, list):
             payload = json.dumps(data, ensure_ascii=False)
         else:
             payload = data
+
+    if headers is None:
+        headers = {}
+
     if auto_retry is None:
         response = requests.request(
             method, url, headers=headers, data=payload, timeout=timeout

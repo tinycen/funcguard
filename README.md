@@ -1,8 +1,7 @@
 # FuncGuard
 
 FuncGuard是一个Python库，提供了函数执行超时控制和重试机制的实用工具。
-
-[![zread](https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff)](https://zread.ai/tinycen/funcguard)
+[![zread](icon/zread-badge.svg)](https://zread.ai/tinycen/funcguard)
 
 ## 功能特点
 
@@ -347,18 +346,23 @@ for ip in test_ips:
 - **返回值**: 用于HTTP Basic认证的Authorization头部字符串，格式为`Basic xxxxx`（base64编码）
 - **功能**: 生成符合HTTP Basic认证要求的Authorization头部内容，常用于需要用户名和密码认证的HTTP请求。
 
-#### send_request(method, url, headers, data=None, return_type="json", timeout=60, auto_retry=None)
+#### send_request(method, url, headers=None, data=None, return_type="json", timeout=60, auto_retry=None)
 
 - **参数**:
   - `method`: HTTP方法（GET, POST等）
   - `url`: 请求URL
-  - `headers`: 请求头
-  - `data`: 请求数据，默认为None
+  - `headers`: 请求头，默认为None。若未传入且`data`为非空dict，则自动添加`Content-Type: application/json`。
+  - `data`: 请求数据，默认为None。支持dict、list、str等类型。若为dict或list会自动转为JSON字符串。
   - `return_type`: 返回类型，可选"json"、"response"或"text"，默认为"json"
   - `timeout`: 请求超时时间，单位为秒，默认为60
   - `auto_retry`: 自动重试配置，格式为`{"task_name": "", "max_retries": 5, "execute_timeout": 90}`，默认为None
 - **返回值**: 根据return_type参数返回不同格式的响应数据
 - **异常**: 当请求失败且重试次数用尽后，抛出相应的异常
+- **注意**:
+  - 当`headers`为None且`data`为非空dict时，会自动设置`Content-Type: application/json`。
+  - 若已传入`headers`且未包含`Content-Type`，且`data`为非空dict，也会自动补充`Content-Type: application/json`。
+  - `data`为list类型时不会自动补充`Content-Type: application/json`，如需请自行传入headers。
+  - 其他类型的`data`（如str、bytes）将直接作为请求体发送。
 
 ### funcguard.time_utils
 
