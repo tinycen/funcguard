@@ -5,6 +5,16 @@ from decimal import Decimal
 pd.set_option("future.no_silent_downcasting", True)
 
 from typing import Union, List, Dict, Any
+from pandas import Int64Dtype, Float64Dtype, StringDtype, BooleanDtype  # pyright: ignore
+
+# 数据类型映射常量
+TYPE_MAPPING = {
+    'int': Int64Dtype(),
+    'float': Float64Dtype(), 
+    'str': StringDtype(),
+    'bool': BooleanDtype(),
+    'datetime': 'datetime64[ns]'  # datetime使用字符串形式
+}
 
 
 # 替换指定列的空值为指定值
@@ -29,4 +39,33 @@ def fill_null(
     elif isinstance(columns, dict):
         for column, value in columns.items():
             df[column] = df[column].fillna(value)
+    return df
+
+
+# 转换指定列的数据类型
+def convert_columns_type(
+    df: pd.DataFrame, columns: Dict[str, str]
+) -> pd.DataFrame:
+    """
+    转换DataFrame中指定列的数据类型。
+
+    参数：
+    - df (pd.DataFrame)：输入的DataFrame。
+    - columns (Dict[str, str])：
+        要转换类型的字典，键为列名，值为目标数据类型。
+        支持的数据类型：'int', 'float', 'str', 'bool', 'datetime'。
+
+    返回：
+    - pd.DataFrame：列类型转换后的DataFrame。
+    """
+    for column, target_type in columns.items():
+        if column in df.columns and target_type in TYPE_MAPPING:
+            try:
+                if target_type == 'datetime':
+                    df[column] = pd.to_datetime(df[column], errors='coerce')
+                else:
+                    df[column] = df[column].astype(TYPE_MAPPING[target_type])  # pyright: ignore[reportArgumentType]
+            except (ValueError, TypeError):
+                # 如果转换失败，保持原类型
+                pass
     return df
