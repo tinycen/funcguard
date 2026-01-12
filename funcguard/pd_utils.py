@@ -64,7 +64,7 @@ def round_columns(
 
 
 # 转换指定列的数据类型
-def convert_columns_type(
+def convert_columns(
     df: pd.DataFrame, columns: Dict[str, str]
 ) -> pd.DataFrame:
     """
@@ -91,7 +91,7 @@ def convert_columns_type(
                 pass
     return df
 
-def detect_and_convert_decimal(
+def convert_decimal(
     df: pd.DataFrame, 
     columns: Union[List[str], Dict[str, str], None] = None,
     default_type: str = 'int'
