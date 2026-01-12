@@ -42,6 +42,27 @@ def fill_null(
     return df
 
 
+# 对指定列进行四舍五入
+def round_columns(
+    df: pd.DataFrame, columns: List[str], digits: int = 0
+) -> pd.DataFrame:
+    """
+    对DataFrame中指定列进行四舍五入操作。
+
+    参数：
+    - df (pd.DataFrame)：输入的DataFrame。
+    - columns (List[str])：要进行四舍五入的列名列表。
+    - digits (int, optional)：保留的小数位数，默认为0。
+
+    返回：
+    - pd.DataFrame：四舍五入后的DataFrame。
+    """
+    for column in columns:
+        if column in df.columns:
+            df[column] = df[column].round(digits)
+    return df
+
+
 # 转换指定列的数据类型
 def convert_columns_type(
     df: pd.DataFrame, columns: Dict[str, str]
