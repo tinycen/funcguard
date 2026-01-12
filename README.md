@@ -14,6 +14,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 函数执行时间监控和警告
 - IP地址检测（局域网IP和公网IP）
 - 时间等待功能（带倒计时显示）
+- pandas数据处理工具（空值填充、列类型转换、Decimal转换等）
 
 ## 安装/升级
 
@@ -308,6 +309,48 @@ for ip in test_ips:
     print(f"IP地址 '{ip}' 验证结果: {is_valid}")
 ```
 
+### pandas数据处理工具
+
+使用pandas工具进行数据处理和类型转换：
+
+```python
+import pandas as pd
+from funcguard import pd_fill_null, pd_round_columns, pd_convert_columns, pd_convert_decimal
+from decimal import Decimal
+
+# 创建示例DataFrame
+df = pd.DataFrame({
+    'name': ['张三', '李四', None, '王五'],
+    'age': [25.7, 30.2, 28.9, 35.1],
+    'salary': [Decimal('5000.50'), Decimal('6000.75'), Decimal('5500.25'), Decimal('7000.00')],
+    'score': [85.678, 92.345, 78.901, 88.234],
+    'join_date': ['2023-01-15', '2023-02-20', '2023-03-10', '2023-04-05']
+})
+
+# 1. 填充空值
+df = pd_fill_null(df, {'name': '未知'}, None)  # 将name列的空值填充为'未知'
+
+# 2. 四舍五入指定列
+df = pd_round_columns(df, ['age'], 0)  # 将age列四舍五入到整数
+
+# 3. 转换列数据类型
+df = pd_convert_columns(df, {
+    'age': 'int',
+    'join_date': 'datetime',
+    'name': 'str'
+})
+
+# 4. 转换Decimal类型
+df = pd_convert_decimal(df, ['salary'], 'float')  # 将salary列的Decimal转换为float
+
+# 5. 批量处理多个列
+df = pd_fill_null(df, ['score'], 0)  # 将score列的空值填充为0
+df = pd_round_columns(df, ['score'], 1)  # 将score列四舍五入到1位小数
+
+print(df)
+print(df.dtypes)
+```
+
 
 ## API文档
 
@@ -494,6 +537,45 @@ for ip in test_ips:
   - 使用整除2(//2)将0-100%映射到0-50字符，确保平滑过渡
   - 已完成部分用'█'表示，未完成部分用'-'表示
   - 使用\r回到行首覆盖之前的内容，保持在同一行更新
+
+### funcguard.pd_utils
+
+#### pd_fill_null(df, columns, fill_value)
+
+- **参数**:
+  - `df`: pandas DataFrame
+  - `columns`: 要填充的列，可以是List[str]或Dict[str, Any]。为列表时，所有列使用相同的fill_value；为字典时，键为列名，值为对应的填充值
+  - `fill_value`: 填充值，当columns为列表时使用
+- **返回值**: 填充后的DataFrame
+- **功能**: 替换DataFrame中指定列的空值为指定值
+
+#### pd_round_columns(df, columns, digits=0)
+
+- **参数**:
+  - `df`: pandas DataFrame
+  - `columns`: 要进行四舍五入的列名列表
+  - `digits`: 保留的小数位数，默认为0
+- **返回值**: 四舍五入后的DataFrame
+- **功能**: 对DataFrame中指定列进行四舍五入操作
+
+#### pd_convert_columns(df, columns)
+
+- **参数**:
+  - `df`: pandas DataFrame
+  - `columns`: 要转换类型的字典，键为列名，值为目标数据类型。支持的数据类型：'int', 'float', 'str', 'bool', 'datetime'
+- **返回值**: 列类型转换后的DataFrame
+- **功能**: 转换DataFrame中指定列的数据类型
+
+#### pd_convert_decimal(df, columns=None, default_type='int')
+
+- **参数**:
+  - `df`: pandas DataFrame
+  - `columns`: 要处理的列，可以是None、List[str]或Dict[str, str]。为None时检测所有列；为列表时检测指定列并使用default_type转换；为字典时键为列名，值为目标类型('int'或'float')
+  - `default_type`: 默认转换类型，'int'或'float'，默认为'int'
+- **返回值**: 转换后的DataFrame
+- **功能**: 检测DataFrame中是否包含Decimal类型的字段，如果包含则转换为指定的数据类型
+- **注意**: 只有object类型的列才可能包含Decimal类型数据
+
 
 ## 许可证
 
