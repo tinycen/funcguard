@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 from decimal import Decimal
 from typing import Union, List, Dict, Any
@@ -96,4 +97,33 @@ def convert_decimal(
             elif target_type == 'float':
                 df[column] = df[column].astype(float)
 
+    return df
+
+
+def convert_json_columns(
+    df: pd.DataFrame, 
+    columns: List[str],
+) -> pd.DataFrame:
+    """
+    对DataFrame中指定的列执行json.loads操作，将JSON字符串转换为Python对象。
+
+    参数：
+    - df (pd.DataFrame)：输入的DataFrame。
+    - columns (List[str])：转换指定的多列
+
+    返回：
+    - pd.DataFrame：JSON转换后的DataFrame。
+    """
+    
+    for column in columns:
+
+        try:
+            # 尝试对列中的每个值执行json.loads
+            df[column] = df[column].apply(
+                lambda x: json.loads(x) if isinstance(x, str) and x.strip() else x
+            )
+        except (json.JSONDecodeError, TypeError):
+            # 如果转换失败，保持原值
+            pass
+    
     return df
