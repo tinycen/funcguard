@@ -103,6 +103,7 @@ def convert_decimal(
 def convert_json_columns(
     df: pd.DataFrame, 
     columns: List[str],
+    empty_to_dict: bool = True,
 ) -> pd.DataFrame:
     """
     对DataFrame中指定的列执行json.loads操作，将JSON字符串转换为Python对象。
@@ -110,6 +111,7 @@ def convert_json_columns(
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
     - columns (List[str])：转换指定的多列
+    - empty_to_dict (bool)：是否将空字符串转换为{}，默认为 True
 
     返回：
     - pd.DataFrame：JSON转换后的DataFrame。
@@ -120,7 +122,9 @@ def convert_json_columns(
         try:
             # 尝试对列中的每个值执行json.loads
             df[column] = df[column].apply(
-                lambda x: json.loads(x) if isinstance(x, str) and x.strip() else x
+                lambda x: json.loads(x) if isinstance(x, str) and x.strip() else (
+                    {} if empty_to_dict and isinstance(x, str) and not x.strip() else x
+                )
             )
         except (json.JSONDecodeError, TypeError):
             # 如果转换失败，保持原值
