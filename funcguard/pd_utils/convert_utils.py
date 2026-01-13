@@ -108,7 +108,7 @@ def convert_decimal(
     return df
 
 
-def convert_json_columns(
+def load_json(
     df: pd.DataFrame,
     columns: List[str],
     empty_to_dict: bool = True,

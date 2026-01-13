@@ -7,7 +7,8 @@ from .pd_utils import (
     fill_null as pd_fill_null,
     round_columns as pd_round_columns,
     convert_columns as pd_convert_columns,
-    convert_decimal as pd_convert_decimal
+    convert_decimal as pd_convert_decimal,
+    load_json as pd_load_json,
 )
 
 
@@ -45,4 +46,5 @@ __all__ = [
     "pd_round_columns",
     "pd_convert_columns",
     "pd_convert_decimal",
+    "pd_load_json",
 ]
