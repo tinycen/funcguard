@@ -14,7 +14,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 函数执行时间监控和警告
 - IP地址检测（局域网IP和公网IP）
 - 时间等待功能（带倒计时显示）
-- pandas数据处理工具（空值填充、列类型转换、Decimal转换等）
+- pandas数据处理工具（空值填充、列类型转换、Decimal转换、JSON字符串转换等）
 
 ## 安装/升级
 
@@ -351,6 +351,33 @@ print(df)
 print(df.dtypes)
 ```
 
+### JSON字符串转换
+
+使用`pd_load_json`函数将DataFrame中的JSON字符串列转换为Python对象：
+
+```python
+import pandas as pd
+from funcguard import pd_load_json
+
+# 创建包含JSON字符串的示例DataFrame
+df = pd.DataFrame({
+    'id': [1, 2, 3],
+    'config': ['{"timeout": 30, "retry": 3}', '{"timeout": 60, "retry": 5}', ''],
+    'metadata': ['{"version": "1.0", "env": "prod"}', '', '{"version": "2.0", "env": "dev"}']
+})
+
+# 将JSON字符串列转换为Python对象
+df = pd_load_json(df, ['config', 'metadata'])
+
+# 现在可以直接访问转换后的对象
+print(df['config'][0]['timeout'])  # 输出: 30
+print(df['metadata'][2]['version'])  # 输出: 2.0
+
+# 处理空字符串（默认转换为{}）
+print(df['config'][2])  # 输出: {}
+print(df['metadata'][1])  # 输出: {}
+```
+
 
 ## API文档
 
@@ -575,6 +602,15 @@ print(df.dtypes)
 - **返回值**: 转换后的DataFrame
 - **功能**: 检测DataFrame中是否包含Decimal类型的字段，如果包含则转换为指定的数据类型
 - **注意**: 只有object类型的列才可能包含Decimal类型数据
+
+#### pd_load_json(df, columns, empty_to_dict=True)
+
+- **参数**:
+  - `df`: pandas DataFrame
+  - `columns`: 要转换的列名列表
+  - `empty_to_dict`: 是否将空字符串转换为{}，默认为True
+- **返回值**: JSON转换后的DataFrame
+- **功能**: 对DataFrame中指定的列执行json.loads操作，将JSON字符串转换为Python对象
 
 
 ## 许可证
