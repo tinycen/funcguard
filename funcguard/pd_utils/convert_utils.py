@@ -2,21 +2,24 @@ import json
 import pandas as pd
 from decimal import Decimal
 from typing import Union, List, Dict, Any
-from pandas import Int64Dtype, Float64Dtype, StringDtype, BooleanDtype  # pyright: ignore
+from pandas import (
+    Int64Dtype,
+    Float64Dtype,
+    StringDtype,
+    BooleanDtype,
+)  # pyright: ignore
 
 # 数据类型映射常量
 TYPE_MAPPING = {
-    'int': Int64Dtype(),
-    'float': Float64Dtype(), 
-    'str': StringDtype(),
-    'bool': BooleanDtype(),
-    'datetime': 'datetime64[ns]'  # datetime使用字符串形式
+    "int": Int64Dtype(),
+    "float": Float64Dtype(),
+    "str": StringDtype(),
+    "bool": BooleanDtype(),
+    "datetime": "datetime64[ns]",  # datetime使用字符串形式
 }
 
 
-def convert_columns(
-    df: pd.DataFrame, columns: Dict[str, str]
-) -> pd.DataFrame:
+def convert_columns(df: pd.DataFrame, columns: Dict[str, str]) -> pd.DataFrame:
     """
     转换DataFrame中指定列的数据类型。
 
@@ -32,10 +35,12 @@ def convert_columns(
     for column, target_type in columns.items():
         if column in df.columns and target_type in TYPE_MAPPING:
             try:
-                if target_type == 'datetime':
-                    df[column] = pd.to_datetime(df[column], errors='coerce')
+                if target_type == "datetime":
+                    df[column] = pd.to_datetime(df[column], errors="coerce")
                 else:
-                    df[column] = df[column].astype(TYPE_MAPPING[target_type])  # pyright: ignore[reportArgumentType]
+                    df[column] = df[column].astype(
+                        TYPE_MAPPING[target_type]
+                    )  # pyright: ignore[reportArgumentType]
             except (ValueError, TypeError):
                 # 如果转换失败，保持原类型
                 pass
@@ -43,9 +48,9 @@ def convert_columns(
 
 
 def convert_decimal(
-    df: pd.DataFrame, 
+    df: pd.DataFrame,
     columns: Union[List[str], Dict[str, str], None] = None,
-    default_type: str = 'int'
+    default_type: str = "int",
 ) -> pd.DataFrame:
     """
     检测DataFrame中是否包含Decimal类型的字段，如果包含则转换为指定的数据类型。
@@ -74,13 +79,15 @@ def convert_decimal(
         # 使用字典指定的类型
         target_columns = list(columns.keys())
         column_types = columns
-    
+
     # 验证default_type和字典中的类型是否有效
-    valid_types = {'int', 'float'}
+    valid_types = {"int", "float"}
     for col, target_type in column_types.items():
         if target_type not in valid_types:
-            raise ValueError(f"无效的类型指定：{target_type}。支持的类型为：{valid_types}")
-    
+            raise ValueError(
+                f"无效的类型指定：{target_type}。支持的类型为：{valid_types}"
+            )
+
     for column in target_columns:
         # 检查列是否存在且为object类型 (只有object类型列才可能包含Decimal)
         if column not in df.columns or df[column].dtype != object:
@@ -89,19 +96,46 @@ def convert_decimal(
         first_non_null = df[column].first_valid_index()
         if first_non_null is None:
             continue
-        if isinstance(df.at[first_non_null, column], Decimal):  # pyright: ignore[reportArgumentType]
+        if isinstance( df.at[first_non_null, column], Decimal ):  # pyright: ignore[reportArgumentType]
             # 根据指定的类型进行转换
             target_type = column_types[column]
-            if target_type == 'int':
+            if target_type == "int":
                 df[column] = df[column].astype(int)
-            elif target_type == 'float':
+            elif target_type == "float":
                 df[column] = df[column].astype(float)
 
     return df
 
 
+def _parse_json_value(value: Any, empty_to_dict: bool = True) -> Any:
+    """
+    将JSON字符串解析为Python对象。
+
+    参数：
+    - value: 要解析的值
+    - empty_to_dict: 是否将空字符串转换为{}，默认为 True
+
+    返回：
+    - 解析后的Python对象，或原始值（如果解析失败）
+    """
+    # 如果不是字符串，直接返回原值
+    if not isinstance(value, str):
+        return value
+
+    # 处理空字符串
+    if not value.strip():
+        return {} if empty_to_dict else value
+
+    # 尝试解析JSON字符串
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        # 解析失败，返回原值
+        raise ValueError(f"JSON解析错误：{value}")
+
+
 def convert_json_columns(
-    df: pd.DataFrame, 
+    df: pd.DataFrame,
     columns: List[str],
     empty_to_dict: bool = True,
 ) -> pd.DataFrame:
@@ -116,18 +150,10 @@ def convert_json_columns(
     返回：
     - pd.DataFrame：JSON转换后的DataFrame。
     """
-    
+
     for column in columns:
 
-        try:
-            # 尝试对列中的每个值执行json.loads
-            df[column] = df[column].apply(
-                lambda x: json.loads(x) if isinstance(x, str) and x.strip() else (
-                    {} if empty_to_dict and isinstance(x, str) and not x.strip() else x
-                )
-            )
-        except (json.JSONDecodeError, TypeError):
-            # 如果转换失败，保持原值
-            pass
-    
+        # 使用独立的转换函数处理列中的每个值
+        df[column] = df[column].apply(lambda x: _parse_json_value(x, empty_to_dict))
+
     return df
