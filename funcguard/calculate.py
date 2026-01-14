@@ -16,6 +16,10 @@ def format_difference(old_value: int | float, new_value: int | float, add_space:
     
     prefix = " " if add_space else ""
     
+    # 检查差异值是否为整数（尾数为0的浮点数）
+    if difference == int(difference):
+        difference = int(difference)
+    
     if difference > 0:
         return f"{prefix}+{difference}"
     if difference < 0:
