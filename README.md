@@ -15,6 +15,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - IP地址检测（局域网IP和公网IP）
 - 时间等待功能（带倒计时显示）
 - pandas数据处理工具（空值填充、列类型转换、Decimal转换、JSON字符串转换等）
+- 数值差异格式化工具（格式化数值变化，如+5、-3等）
 
 ## 安装/升级
 
@@ -378,6 +379,33 @@ print(df['config'][2])  # 输出: {}
 print(df['metadata'][1])  # 输出: {}
 ```
 
+### 数值差异格式化
+
+使用`format_difference`函数格式化两个数值之间的差异，常用于显示数值变化：
+
+```python
+from funcguard import format_difference
+
+# 计算并格式化数值变化
+old_value = 100
+new_value = 150
+print(format_difference(old_value, new_value))  # 输出: +50
+
+old_value = 200
+new_value = 180
+print(format_difference(old_value, new_value))  # 输出: -20
+
+old_value = 100
+new_value = 100
+print(format_difference(old_value, new_value))  # 输出: (空字符串)
+
+# 在实际应用中的示例
+current_price = 150.5
+previous_price = 145.2
+price_change = format_difference(previous_price, current_price)
+print(f"当前价格: {current_price}, 变化: {price_change}")  # 输出: 当前价格: 150.5, 变化: +5.3
+```
+
 
 ## API文档
 
@@ -611,6 +639,20 @@ print(df['metadata'][1])  # 输出: {}
   - `empty_to_dict`: 是否将空字符串转换为{}，默认为True
 - **返回值**: JSON转换后的DataFrame
 - **功能**: 对DataFrame中指定的列执行json.loads操作，将JSON字符串转换为Python对象
+
+
+### funcguard.calculate
+
+#### format_difference(old_value: int | float, new_value: int | float) -> str
+
+- **参数**:
+  - `old_value`: 旧值（整数或浮点数）
+  - `new_value`: 新值（整数或浮点数）
+- **返回值**: 格式化的差异字符串
+  - 若差异为0，返回空字符串
+  - 若差异为正，返回"+差异值"格式
+  - 若差异为负，返回"-差异值"格式
+- **功能**: 格式化两个数值之间的差异，常用于显示数值变化
 
 
 ## 许可证

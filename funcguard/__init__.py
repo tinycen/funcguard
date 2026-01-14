@@ -10,6 +10,7 @@ from .pd_utils import (
     convert_decimal as pd_convert_decimal,
     load_json as pd_load_json,
 )
+from .calculate import format_difference
 
 
 
@@ -47,4 +48,7 @@ __all__ = [
     "pd_convert_columns",
     "pd_convert_decimal",
     "pd_load_json",
+    
+    # 计算工具
+    "format_difference",
 ]
