@@ -12,6 +12,8 @@ from .pd_utils import (
 )
 from .calculate import format_difference
 
+from .data_models import RequestLog
+
 
 
 __author__ = "ruocen"
@@ -51,4 +53,7 @@ __all__ = [
     
     # 计算工具
     "format_difference",
+    
+    # 数据模型
+    "RequestLog",
 ]

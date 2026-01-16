@@ -3,6 +3,7 @@ import base64
 import requests
 from typing import Optional, Dict, Any, Union
 from .core import retry_function
+from .data_models import RequestLog
 
 # 生成 base64 格式的 Basic Auth 字符串
 
@@ -25,6 +26,7 @@ def send_request(
     return_type: str = "json",
     timeout: int = 60,
     auto_retry: Optional[Dict[str, Any]] = None,
+    request_log: RequestLog = RequestLog(),
 ) -> Union[Dict, str, requests.Response]:
     """
     发送HTTP请求的通用函数
@@ -81,6 +83,22 @@ def send_request(
 
     if return_type == "json":
         result = response.json()
+        if request_log.save_path :
+            res_log ={}
+            if request_log.save_method:
+                res_log["method"] = method
+            if request_log.save_url:
+                res_log["url"] = url
+            if request_log.save_headers:
+                res_log["headers"] = headers
+            if request_log.save_body:
+                res_log["body"] = payload
+            if request_log.save_response:
+                res_log["response"] = result
+            with open(request_log.save_path, "w", encoding="utf-8") as f:
+                json.dump(res_log, f, ensure_ascii=False, indent=4)
+            print(f"File saved to: {request_log.save_path}")
+
     elif return_type == "response":
         return response
     else:
