@@ -84,20 +84,20 @@ def send_request(
     if return_type == "json":
         result = response.json()
         if request_log.save_path :
-            res_log ={}
-            if request_log.save_method:
-                res_log["method"] = method
-            if request_log.save_url:
-                res_log["url"] = url
-            if request_log.save_headers:
-                res_log["headers"] = headers
-            if request_log.save_body:
-                res_log["body"] = payload
-            if request_log.save_response:
-                res_log["response"] = result
+            res_log = {}
+            save_fields = [
+                ("save_method", "method", method),
+                ("save_url", "url", url),
+                ("save_headers", "headers", headers),
+                ("save_body", "body", payload),
+                ("save_response", "response", result),
+            ]
+            for attr, key, value in save_fields:
+                if getattr(request_log, attr):
+                    res_log[key] = value
             with open(request_log.save_path, "w", encoding="utf-8") as f:
                 json.dump(res_log, f, ensure_ascii=False, indent=4)
-            print(f"File saved to: {request_log.save_path}")
+            print(f"Request log saved to: {request_log.save_path}")
 
     elif return_type == "response":
         return response
