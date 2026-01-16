@@ -1,19 +1,35 @@
 import json
 import base64
+import hashlib
 import requests
 from typing import Optional, Dict, Any, Union
 from .core import retry_function
 from .data_models import RequestLog
 
+
+def generate_md5_hash(*texts: str, encoding: str = "utf-8") -> str:
+    """
+    生成字符串的 MD5 哈希值，支持多个文本参数自动拼接
+
+    :param texts: 需要生成哈希的字符串，可以传入多个参数，会自动拼接
+    :param encoding: 字符串编码，默认为 utf-8
+    :return: MD5 哈希值的十六进制字符串
+    
+    示例:
+        generate_md5_hash(appid, query, salt, appkey)
+        generate_md5_hash("hello", "world")  # 相当于对 "helloworld" 生成MD5
+    """
+    combined_text = "".join(texts)
+    return hashlib.md5(combined_text.encode(encoding)).hexdigest()
+
+
 # 生成 base64 格式的 Basic Auth 字符串
-
-
 def encode_basic_auth(username, password):
     # 将 Username 和 Password 拼接成字符串
-    auth_str = f'{username}:{password}'
+    auth_str = f"{username}:{password}"
 
     # 对字符串进行 base64 编码，并添加 'Basic ' 前缀
-    auth_value = f'Basic {base64.b64encode( auth_str.encode() ).decode()}'
+    auth_value = f"Basic {base64.b64encode( auth_str.encode() ).decode()}"
     return auth_value
 
 
@@ -83,7 +99,7 @@ def send_request(
 
     if return_type == "json":
         result = response.json()
-        if request_log.save_path :
+        if request_log.save_path:
             res_log = {}
             save_fields = [
                 ("save_method", "method", method),
