@@ -158,3 +158,31 @@ def convert_datetime_str(
         df[column] = formatted.where(~converted.isna(), df[column].astype(str))
             
     return df
+
+
+def convert_str_datetime(
+    df: pd.DataFrame, columns: List[str]
+) -> pd.DataFrame:
+    """
+    将DataFrame中指定字符串列转换为datetime类型。
+
+    参数：
+    - df (pd.DataFrame)：输入的DataFrame。
+    - columns (List[str])：要转换为datetime类型的列名列表。
+
+    返回：
+    - pd.DataFrame：转换后的DataFrame。
+    """
+    def parse_datetime(value: str) -> Union[pd.Timestamp, str]:
+        try:
+            return pd.to_datetime(value)
+        except (ValueError, TypeError):
+            return value
+
+    for column in columns:
+        if column not in df.columns:
+            continue
+
+        df[column] = df[column].apply(parse_datetime)
+
+    return df

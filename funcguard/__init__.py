@@ -9,6 +9,8 @@ from .pd_utils import (
     round_columns as pd_round_columns,
     convert_columns as pd_convert_columns,
     convert_decimal as pd_convert_decimal,
+    convert_str_datetime as pd_convert_str_datetime,
+    convert_datetime_str as pd_convert_datetime_str,
     load_json as pd_load_json,
 
 )
@@ -51,6 +53,8 @@ __all__ = [
     "pd_round_columns",
     "pd_convert_columns",
     "pd_convert_decimal",
+    "pd_convert_str_datetime",
+    "pd_convert_datetime_str",
     "pd_load_json",
     "pd_fill_nat",
     
