@@ -134,7 +134,11 @@ def load_json(
 
 
 def convert_datetime_str(
-    df: pd.DataFrame, columns: List[str], include_time: bool = True
+    df: pd.DataFrame,
+    columns: List[str],
+    include_time: bool = True,
+    fail_fill: Any = "",
+    keep_original_on_fail: bool = False,
 ) -> pd.DataFrame:
     """
     将DataFrame中指定时间列转换为字符串类型。
@@ -143,6 +147,8 @@ def convert_datetime_str(
     - df (pd.DataFrame)：输入的DataFrame。
     - columns (List[str])：要转换为datetime类型的列名列表。
     - include_time (bool)：是否保留时间部分，默认为 True（包含时间），为 False 时只保留日期。
+    - fail_fill (Any)：转换失败时的填充值，默认空字符串。
+    - keep_original_on_fail (bool)：转换失败时是否保留原值，默认为 False。
 
     返回：
     - pd.DataFrame：转换后的DataFrame。
@@ -153,9 +159,11 @@ def convert_datetime_str(
         if column not in df.columns:
             continue
 
-        converted = pd.to_datetime(df[column], errors="coerce")
+        original = df[column]
+        converted = pd.to_datetime(original, errors="coerce")
         formatted = converted.dt.strftime(fmt)
-        df[column] = formatted.where(~converted.isna(), df[column].astype(str))
+        fallback = original if keep_original_on_fail else fail_fill
+        df[column] = formatted.where(~converted.isna(), fallback)
             
     return df
 

@@ -64,4 +64,6 @@ def fill_nat(
         ):
             column_as_object = df[column].astype(object)
             df[column] = column_as_object.fillna(fill_value)
+        else:
+            df[column] = df[column].replace({pd.NaT: fill_value, "NaT": fill_value})
     return df
