@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype
 from typing import Union, List, Any, Dict
 
 
@@ -43,4 +44,24 @@ def round_columns(
     for column in columns:
         if column in df.columns:
             df[column] = df[column].round(digits)
+    return df
+
+
+def fill_nat(
+    df: pd.DataFrame, columns: Union[List[str], str]
+) -> pd.DataFrame:
+    """将指定列的 NaT（Datetime/Timedelta）替换为空字符串"""
+
+    if isinstance(columns, str):
+        columns = [columns]
+
+    for column in columns:
+        if column not in df.columns:
+            continue
+        column_dtype = df[column].dtype
+        if is_datetime64_any_dtype(column_dtype) or is_timedelta64_dtype(
+            column_dtype
+        ):
+            column_as_object = df[column].astype(object)
+            df[column] = column_as_object.fillna("")
     return df

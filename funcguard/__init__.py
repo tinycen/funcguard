@@ -5,10 +5,12 @@ from .printer import print_block, print_line, print_title, print_progress
 from .ip_utils import get_local_ip, get_public_ip, is_valid_ip, get_ip_info
 from .pd_utils import (
     fill_null as pd_fill_null,
+    fill_nat as pd_fill_nat,
     round_columns as pd_round_columns,
     convert_columns as pd_convert_columns,
     convert_decimal as pd_convert_decimal,
     load_json as pd_load_json,
+
 )
 from .calculate import format_difference
 
@@ -50,6 +52,7 @@ __all__ = [
     "pd_convert_columns",
     "pd_convert_decimal",
     "pd_load_json",
+    "pd_fill_nat",
     
     # 计算工具
     "format_difference",
