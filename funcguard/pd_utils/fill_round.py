@@ -13,7 +13,7 @@ def fill_null(
     - df (pd.DataFrame)：输入的DataFrame。
     - columns (List[str] or Dict[str, Any])：
         要替换空值的列名列表或字典， 键为列名，值为要填充的值。
-    - fill_value (Any, optional)：要填充的值。
+    - fill_value (Any, optional)：要填充的值，默认为空字符串。
 
     返回：
     - pd.DataFrame：替换空值后的DataFrame。
@@ -48,7 +48,7 @@ def round_columns(
 
 
 def fill_nat(
-    df: pd.DataFrame, columns: Union[List[str], str]
+    df: pd.DataFrame, columns: Union[List[str], str],fill_value: Any = ""
 ) -> pd.DataFrame:
     """将指定列的 NaT（Datetime/Timedelta）替换为空字符串"""
 
@@ -63,5 +63,5 @@ def fill_nat(
             column_dtype
         ):
             column_as_object = df[column].astype(object)
-            df[column] = column_as_object.fillna("")
+            df[column] = column_as_object.fillna(fill_value)
     return df
