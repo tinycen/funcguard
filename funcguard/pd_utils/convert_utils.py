@@ -137,6 +137,7 @@ def convert_datetime_str(
     df: pd.DataFrame,
     columns: List[str],
     include_time: bool = True,
+    include_seconds: bool = True,
     fail_fill: Any = "",
     keep_original_on_fail: bool = False,
 ) -> pd.DataFrame:
@@ -147,13 +148,17 @@ def convert_datetime_str(
     - df (pd.DataFrame)：输入的DataFrame。
     - columns (List[str])：要转换为datetime类型的列名列表。
     - include_time (bool)：是否保留时间部分，默认为 True（包含时间），为 False 时只保留日期。
+    - include_seconds (bool)：当 include_time=True 时，是否包含秒，默认为 True。
     - fail_fill (Any)：转换失败时的填充值，默认空字符串。
     - keep_original_on_fail (bool)：转换失败时是否保留原值，默认为 False。
 
     返回：
     - pd.DataFrame：转换后的DataFrame。
     """
-    fmt = "%Y-%m-%d %H:%M:%S" if include_time else "%Y-%m-%d"
+    if include_time:
+        fmt = "%Y-%m-%d %H:%M:%S" if include_seconds else "%Y-%m-%d %H:%M"
+    else:
+        fmt = "%Y-%m-%d"
 
     for column in columns:
         if column not in df.columns:
