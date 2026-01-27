@@ -104,10 +104,9 @@ def setup_logger(
     创建并配置彩色日志输出。
 
     Args:
-            name: logger 的名称，默认 全局共享1个 logger 实例。
-                    作用：负责收集日志记录并根据等级过滤后交给 handler 输出。
-                    示例：
-                            # 在 network.py
+        name: logger 的名称，默认 全局共享1个 logger 实例。
+            示例：
+            # 在 network.py
             logger_a = setup_logger("network")
             logger_a.debug("网络调试信息")
 
@@ -117,13 +116,20 @@ def setup_logger(
         作用:
             通过不同名称创建的 logger 互不干扰，适合在大型项目中使用。
                             每个 logger 设置不同的日志级别、格式、输出流等。
-            level: 日志等级。支持 int 或字符串，默认 "DEBUG"。
+            level: 日志等级。支持 int 或字符串，默认 "DEBUG"。根据等级过滤后交给 handler 输出。
                     常用等级：DEBUG(10), INFO(20), SUCCESS(25), WARNING(30), ERROR(40), CRITICAL(50)。
                     字符串支持："DEBUG"、"INFO"、"SUCCESS"、"WARNING"/"WARN"、"ERROR"、"CRITICAL"/"FATAL"（大小写不敏感）。
             stream: 输出流，默认 sys.stdout。
 
     Returns:
-            配置完成的 logger。
+        配置完成的 logger。示例:
+            logger = setup_logger()
+            logger.debug("这是一条调试信息")      # 青色
+            logger.info("这是一条普通信息")       # 白色/默认
+            logger.success("这是一条成功信息")    # 绿色
+            logger.warning("这是一条警告信息")    # 黄色
+            logger.error("这是一条错误信息")      # 红色
+            logger.critical("这是一条严重错误信息")  # 紫色
     """
 
     logger = cast(SuccessLogger, logging.getLogger(name))
