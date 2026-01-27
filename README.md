@@ -282,6 +282,40 @@ result, duration = time_monitor(
 print(f"结果: {result}, 耗时: {duration}秒")
 ```
 
+### log 日志工具
+
+使用`logger`函数多彩显示日志：
+
+```python
+from funcguard import setup_logger
+
+# 在 network.py
+logger_a = setup_logger("network")
+logger_a.debug("网络调试信息")
+
+# 在 db.py
+logger_b = setup_logger("db")
+logger_b.debug("数据库调试信息")
+
+# 全局 loggeer
+logger = setup_logger()
+logger.debug("网络调试信息")
+logger.debug("数据库调试信息")
+
+# 设置等级 level : 字符串（大小写不敏感）
+logger = setup_logger(level="debug")
+
+# 支持的输出（含颜色）
+logger.debug("这是一条调试信息")      # 青色
+logger.info("这是一条普通信息")       # 白色/默认
+logger.success("这是一条成功信息")    # 绿色
+logger.warning("这是一条警告信息")    # 黄色
+logger.error("这是一条错误信息")      # 红色
+logger.critical("这是一条严重错误信息")  # 紫色
+
+```
+
+
 ### IP地址检测
 
 使用IP检测功能获取本机局域网IP、公网IP以及验证IP地址格式：

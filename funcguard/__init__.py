@@ -17,6 +17,7 @@ from .pd_utils import (
 from .calculate import format_difference
 
 from .data_models import RequestLog
+from .log_utils import setup_logger
 
 
 
@@ -42,13 +43,16 @@ __all__ = [
     "print_title",
     "print_progress",
 
+    # 日志工具
+    "setup_logger",
+
     # IP 工具
     "get_local_ip",
     "get_public_ip",
     "is_valid_ip",
     "get_ip_info",
 
-    # pands 数据处理工具
+    # pandas 数据处理工具
     "pd_fill_null",
     "pd_round_columns",
     "pd_convert_columns",
@@ -63,4 +67,5 @@ __all__ = [
     
     # 数据模型
     "RequestLog",
+
 ]
