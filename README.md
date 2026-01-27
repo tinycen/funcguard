@@ -307,7 +307,7 @@ logger = setup_logger(level="debug")
 
 # 支持的输出（含颜色）
 logger.debug("这是一条调试信息")      # 青色
-logger.info("这是一条普通信息")       # 白色/默认
+logger.info("这是一条普通信息")       # 白色/浅灰色/默认
 logger.success("这是一条成功信息")    # 绿色
 logger.warning("这是一条警告信息")    # 黄色
 logger.error("这是一条错误信息")      # 红色
