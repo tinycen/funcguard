@@ -1,15 +1,58 @@
 """Logging utilities for funcguard."""
 
 import logging
+import os
 import sys
 from typing import Optional, TextIO, Union, cast
 
 
-class ColoredFormatter(logging.Formatter):
-    """彩色日志格式化器。"""
+def _supports_ansi(stream: Optional[TextIO] = None) -> bool:
+    """
+    检测流是否支持 ANSI 颜色代码。
 
-    # 注意：Windows 自带的终端（尤其老版本 CMD）不原生支持 ANSI 颜色码，
-    # 直接输出 \033[31m 等控制字符可能会显示成乱码，请升级终端。
+    Args:
+        stream: 要检测的流，默认为 sys.stdout
+
+    Returns:
+        如果流支持 ANSI 颜色代码则返回 True，否则返回 False
+    """
+    if stream is None:
+        stream = sys.stdout
+
+    # 检查是否被强制禁用颜色
+    if os.environ.get("NO_COLOR"):
+        return False
+
+    # 检查是否被强制启用颜色
+    if os.environ.get("FORCE_COLOR"):
+        return True
+
+    # 如果不是终端（TTY），不支持 ANSI
+    if not hasattr(stream, "isatty") or not stream.isatty():
+        return False
+
+    # Windows 需要特殊处理
+    if sys.platform == "win32":
+        # Windows 10 build 14393+ 支持 ANSI，尝试启用
+        try:
+            # 调用 os.system("") 可以启用 Windows 10+ 的 ANSI 支持
+            os.system("")
+            return True
+        except Exception:
+            return False
+
+    # Unix-like 系统默认支持 ANSI
+    return True
+
+
+class ColoredFormatter(logging.Formatter):
+    """彩色日志格式化器。
+
+    自动检测终端是否支持 ANSI 颜色代码：
+    - 如果输出不是终端（TTY），则不添加颜色代码
+    - 在 Windows 上自动启用 ANSI 支持（Windows 10+）
+    - 支持 NO_COLOR 和 FORCE_COLOR 环境变量
+    """
 
     COLORS = {
         "DEBUG": "\033[36m",  # 青色
@@ -22,10 +65,34 @@ class ColoredFormatter(logging.Formatter):
         "RESET": "\033[0m",  # 重置所有颜色
     }
 
+    def __init__(
+        self,
+        fmt: Optional[str] = None,
+        datefmt: Optional[str] = None,
+        style: str = "%",
+        stream: Optional[TextIO] = None,
+    ):
+        super().__init__(fmt, datefmt, style)
+        self._stream = stream
+        self._use_colors: Optional[bool] = None
+
+    def _should_use_colors(self, stream: Optional[TextIO] = None) -> bool:
+        """判断是否应该使用颜色。"""
+        # 如果已经检测过，直接返回缓存结果
+        if self._use_colors is not None:
+            return self._use_colors
+
+        # 使用传入的 stream 或初始化时的 stream
+        check_stream = stream or self._stream
+        self._use_colors = _supports_ansi(check_stream)
+        return self._use_colors
+
     def format(self, record: logging.LogRecord) -> str:
         message = super().format(record)
-        color = self.COLORS.get(record.levelname, self.COLORS["INFO"])
-        return f"{color}{message}{self.COLORS['RESET']}"
+        if self._should_use_colors():
+            color = self.COLORS.get(record.levelname, self.COLORS["INFO"])
+            return f"{color}{message}{self.COLORS['RESET']}"
+        return message
 
 
 def _has_colored_handler(logger: logging.Logger) -> bool:
@@ -160,13 +227,16 @@ def setup_logger(
     if _has_colored_handler(logger):
         return logger
 
-    console_handler = logging.StreamHandler(stream or sys.stdout)
+    actual_stream = stream or sys.stdout
+    console_handler = logging.StreamHandler(actual_stream)
     console_handler.setLevel(normalized_level)
     if message_only:
-        formatter = ColoredFormatter("%(message)s")
+        formatter = ColoredFormatter("%(message)s", stream=actual_stream)
     else:
         formatter = ColoredFormatter(
-            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+            "%(asctime)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            stream=actual_stream,
         )
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
