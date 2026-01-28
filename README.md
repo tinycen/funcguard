@@ -145,6 +145,7 @@ print()  # 处理完成后换行
 - 提供中英文双语统计信息
 - 可显示总耗时、平均耗时等详细统计
 - 支持i从0或从1开始的计数方式
+- 支持 level 参数输出彩色日志（DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL）
 - 支持函数执行时间监控和警告
 
 使用`time_log`和`time_diff`函数记录任务执行时间和统计信息：
@@ -163,7 +164,8 @@ import time
 for i in range(1, 101):
     time.sleep(0.1)  # 模拟处理时间
     if i % 20 == 0:
-        time_log(f"处理进度", i, 100, start_time, 0)  # 显示进度和预计完成时间
+      # 使用 level 输出彩色日志
+      time_log("处理进度", i, 100, start_time, 0, level="progress")  # 显示进度和预计完成时间
 
 # 记录任务完成并打印统计信息
 time_diff(start_time, 100, "cn")  # 中文显示统计信息
@@ -180,7 +182,7 @@ import time
 for i in range(1, 101):
     time.sleep(0.1)  # 模拟处理时间
     if i % 20 == 0:
-        time_log(f"处理进度", i, 100, start_time, 1)  # 显示进度和预计完成时间
+      time_log("处理进度", i, 100, start_time, 1, level="progress")  # 显示进度和预计完成时间
 
 ```
 
@@ -284,7 +286,7 @@ print(f"结果: {result}, 耗时: {duration}秒")
 
 ### log 日志工具
 
-使用`logger`函数多彩显示日志：
+使用`setup_logger`函数多彩显示日志：
 
 ```python
 from funcguard import setup_logger
@@ -305,13 +307,19 @@ logger.debug("数据库调试信息")
 # 设置等级 level : 字符串（大小写不敏感）
 logger = setup_logger(level="debug")
 
+# 仅输出消息（不包含时间与等级）
+logger = setup_logger(message_only=True)
+
 # 支持的输出（含颜色）
 logger.debug("这是一条调试信息")      # 青色
 logger.info("这是一条普通信息")       # 白色/浅灰色/默认
 logger.success("这是一条成功信息")    # 绿色
+logger.progress("这是一条进度信息")   # 蓝色
 logger.warning("这是一条警告信息")    # 黄色
 logger.error("这是一条错误信息")      # 红色
 logger.critical("这是一条严重错误信息")  # 紫色
+
+# 注意：Windows 自带终端（旧版 CMD）可能不支持 ANSI 颜色码
 
 ```
 
@@ -498,7 +506,7 @@ print(f"当前价格: {current_price}, 变化: {price_change}")  # 输出: 当�
 
 ### funcguard.time_utils
 
-#### time_log(message, i=0, max_num=0, s_time=None, start_from=0, return_field="progress_info")
+#### time_log(message, i=0, max_num=0, s_time=None, start_from=0, return_field="progress_info", level="")
 
 - **参数**:
   - `message`: 日志消息
@@ -510,6 +518,7 @@ print(f"当前价格: {current_price}, 变化: {price_change}")  # 输出: 当�
     - "progress_info" 表示完整进度信息（默认）
     - "remaining_time" 表示剩余时间
     - "end_time" 表示预计完成时间
+  - `level`: 日志等级，支持 DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL。为空时仅 print。
 - **返回值**: 
   - 根据return_field参数返回不同的信息
   - 默认情况下打印带时间戳的日志信息并返回进度信息
