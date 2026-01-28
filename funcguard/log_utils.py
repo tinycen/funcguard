@@ -24,8 +24,8 @@ def _supports_ansi(stream: Optional[TextIO] = None) -> bool:
         return False
 
     # 检查是否被强制启用颜色 (FORCE_COLOR: must be truthy value)
-    force_color = os.environ.get("FORCE_COLOR", "")
-    if force_color and force_color.lower() not in ("0", "false", "no", ""):
+    force_color = os.environ.get("FORCE_COLOR", "").lower()
+    if force_color in ("1", "true", "yes"):
         return True
 
     # 如果不是终端（TTY），不支持 ANSI
@@ -61,7 +61,7 @@ def _enable_windows_ansi() -> bool:
 
         # Get stdout handle
         handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
-        if handle == -1:
+        if handle in (-1, 0):  # INVALID_HANDLE_VALUE or NULL
             return False
 
         # Get current console mode
