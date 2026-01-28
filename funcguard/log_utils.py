@@ -99,6 +99,7 @@ def setup_logger(
     name: Optional[str] = None,
     level: Union[int, str] = logging.DEBUG,
     stream: Optional[TextIO] = None,
+    message_only: bool = False,
 ) -> SuccessLogger:
     """
     创建并配置彩色日志输出。
@@ -120,6 +121,7 @@ def setup_logger(
                     常用等级：DEBUG(10), INFO(20), SUCCESS(25), WARNING(30), ERROR(40), CRITICAL(50)。
                     字符串支持："DEBUG"、"INFO"、"SUCCESS"、"WARNING"/"WARN"、"ERROR"、"CRITICAL"/"FATAL"（大小写不敏感）。
             stream: 输出流，默认 sys.stdout。
+            message_only: 是否仅输出日志消息（不包含时间与等级），默认 False。
 
     Returns:
         配置完成的 logger。示例:
@@ -142,9 +144,12 @@ def setup_logger(
 
     console_handler = logging.StreamHandler(stream or sys.stdout)
     console_handler.setLevel(normalized_level)
-    formatter = ColoredFormatter(
-        "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-    )
+    if message_only:
+        formatter = ColoredFormatter("%(message)s")
+    else:
+        formatter = ColoredFormatter(
+            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        )
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     return logger

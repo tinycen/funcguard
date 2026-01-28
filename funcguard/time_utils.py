@@ -3,10 +3,14 @@
 """
 import time
 from datetime import datetime, timezone, timedelta
+from .log_utils import setup_logger, _normalize_level
+
+
+color_logger = setup_logger("funcguard_time_logger", message_only=True)
 
 
 # 打印时间
-def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return_field = "progress_info") :
+def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return_field = "progress_info", level = "") :
     """
     打印带时间戳的日志信息，支持进度显示和预计完成时间
     
@@ -17,6 +21,7 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
     :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
     :param return_field: 返回字段，支持以下：
         "progress_info" 表示完整进度信息，"remaining_time" 表示剩余时间，"end_time" 表示预计完成时间
+    :param level: 日志等级，支持 DEBUG/INFO/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL。为空时仅 print。
     :return: 根据 return_field 参数返回不同的信息
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
@@ -26,7 +31,10 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
         if return_field in ["end_time", "remaining_time"] :
             return ""
         else:
-            print( time_str + " " + message )
+            if level:
+                color_logger.log( _normalize_level( level ), time_str + " " + message )
+            else:
+                print( time_str + " " + message )
 
     else :
         # 根据start_from参数计算实际处理的项目数
@@ -57,7 +65,10 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
         elif return_field == "remaining_time" :
             return etr_time_info
 
-        print( time_str + " " + message + " " + progress_info )
+        if level:
+            color_logger.log( _normalize_level( level ), time_str + " " + message + " " + progress_info )
+        else:
+            print( time_str + " " + message + " " + progress_info )
     return progress_info
 
 
