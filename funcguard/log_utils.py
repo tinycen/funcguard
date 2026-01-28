@@ -19,12 +19,13 @@ def _supports_ansi(stream: Optional[TextIO] = None) -> bool:
     if stream is None:
         stream = sys.stdout
 
-    # 检查是否被强制禁用颜色
-    if os.environ.get("NO_COLOR"):
+    # 检查是否被强制禁用颜色 (NO_COLOR spec: any non-empty value disables colors)
+    if os.environ.get("NO_COLOR", "") != "":
         return False
 
-    # 检查是否被强制启用颜色
-    if os.environ.get("FORCE_COLOR"):
+    # 检查是否被强制启用颜色 (FORCE_COLOR: must be truthy value)
+    force_color = os.environ.get("FORCE_COLOR", "")
+    if force_color and force_color.lower() not in ("0", "false", "no", ""):
         return True
 
     # 如果不是终端（TTY），不支持 ANSI
@@ -33,16 +34,49 @@ def _supports_ansi(stream: Optional[TextIO] = None) -> bool:
 
     # Windows 需要特殊处理
     if sys.platform == "win32":
-        # Windows 10 build 14393+ 支持 ANSI，尝试启用
-        try:
-            # 调用 os.system("") 可以启用 Windows 10+ 的 ANSI 支持
-            os.system("")
-            return True
-        except Exception:
-            return False
+        return _enable_windows_ansi()
 
     # Unix-like 系统默认支持 ANSI
     return True
+
+
+def _enable_windows_ansi() -> bool:
+    """
+    在 Windows 上启用 ANSI 颜色支持。
+
+    使用 Windows API 启用虚拟终端处理（Windows 10 build 14393+）。
+
+    Returns:
+        如果成功启用 ANSI 支持则返回 True，否则返回 False
+    """
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        # Windows API constants
+        STD_OUTPUT_HANDLE = -11
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+
+        # Get stdout handle
+        handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+        if handle == -1:
+            return False
+
+        # Get current console mode
+        mode = wintypes.DWORD()
+        if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+            return False
+
+        # Enable virtual terminal processing
+        new_mode = mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+        if not kernel32.SetConsoleMode(handle, new_mode):
+            return False
+
+        return True
+    except Exception:
+        return False
 
 
 class ColoredFormatter(logging.Formatter):
@@ -73,23 +107,12 @@ class ColoredFormatter(logging.Formatter):
         stream: Optional[TextIO] = None,
     ):
         super().__init__(fmt, datefmt, style)
-        self._stream = stream
-        self._use_colors: Optional[bool] = None
-
-    def _should_use_colors(self, stream: Optional[TextIO] = None) -> bool:
-        """判断是否应该使用颜色。"""
-        # 如果已经检测过，直接返回缓存结果
-        if self._use_colors is not None:
-            return self._use_colors
-
-        # 使用传入的 stream 或初始化时的 stream
-        check_stream = stream or self._stream
-        self._use_colors = _supports_ansi(check_stream)
-        return self._use_colors
+        # 在初始化时检测并缓存颜色支持状态
+        self._use_colors: bool = _supports_ansi(stream)
 
     def format(self, record: logging.LogRecord) -> str:
         message = super().format(record)
-        if self._should_use_colors():
+        if self._use_colors:
             color = self.COLORS.get(record.levelname, self.COLORS["INFO"])
             return f"{color}{message}{self.COLORS['RESET']}"
         return message
