@@ -14,6 +14,7 @@ class ColoredFormatter(logging.Formatter):
     COLORS = {
         "DEBUG": "\033[36m",  # 青色
         "INFO": "\033[37m",  # 白色/浅灰色/默认
+        "PROGRESS": "\033[34m",  # 蓝色
         "SUCCESS": "\033[32m",  # 绿色
         "WARNING": "\033[33m",  # 黄色
         "ERROR": "\033[31m",  # 红色
@@ -42,7 +43,9 @@ def _has_colored_handler(logger: logging.Logger) -> bool:
 
 
 SUCCESS_LEVEL = 25
+PROGRESS_LEVEL = 35
 logging.addLevelName(SUCCESS_LEVEL, "SUCCESS")
+logging.addLevelName(PROGRESS_LEVEL, "PROGRESS")
 
 
 class SuccessLogger(logging.Logger):
@@ -52,10 +55,15 @@ class SuccessLogger(logging.Logger):
         if self.isEnabledFor(SUCCESS_LEVEL):
             self._log(SUCCESS_LEVEL, message, args, **kwargs)
 
+    def progress(self, message, *args, **kwargs) -> None:
+        if self.isEnabledFor(PROGRESS_LEVEL):
+            self._log(PROGRESS_LEVEL, message, args, **kwargs)
+
 
 _LEVEL_NAME_MAP = {
     "DEBUG": logging.DEBUG,  # 10
     "INFO": logging.INFO,  # 20
+    "PROGRESS": PROGRESS_LEVEL,  # 蓝色 23
     "SUCCESS": SUCCESS_LEVEL,  # 25
     "WARNING": logging.WARNING,  # 30
     "WARN": logging.WARNING,  # 30
@@ -71,8 +79,17 @@ def _logger_success(self: logging.Logger, message, *args, **kwargs) -> None:
         self._log(SUCCESS_LEVEL, message, args, **kwargs)
 
 
+def _logger_progress(self: logging.Logger, message, *args, **kwargs) -> None:
+    """记录 PROGRESS 等级日志。"""
+    if self.isEnabledFor(PROGRESS_LEVEL):
+        self._log(PROGRESS_LEVEL, message, args, **kwargs)
+
+
 if not hasattr(logging.Logger, "success"):
     setattr(logging.Logger, "success", _logger_success)
+
+if not hasattr(logging.Logger, "progress"):
+    setattr(logging.Logger, "progress", _logger_progress)
 
 
 def _normalize_level(level: Union[int, str]) -> int:
@@ -90,7 +107,7 @@ def _normalize_level(level: Union[int, str]) -> int:
         if key in _LEVEL_NAME_MAP:
             return _LEVEL_NAME_MAP[key]
         raise ValueError(
-            f"不支持的日志等级: {level!r}。支持: DEBUG/INFO/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL"
+            f"不支持的日志等级: {level!r}。支持: DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL"
         )
     return int(level)
 
@@ -117,9 +134,9 @@ def setup_logger(
         作用:
             通过不同名称创建的 logger 互不干扰，适合在大型项目中使用。
                             每个 logger 设置不同的日志级别、格式、输出流等。
-            level: 日志等级。支持 int 或字符串，默认 "DEBUG"。根据等级过滤后交给 handler 输出。
-                    常用等级：DEBUG(10), INFO(20), SUCCESS(25), WARNING(30), ERROR(40), CRITICAL(50)。
-                    字符串支持："DEBUG"、"INFO"、"SUCCESS"、"WARNING"/"WARN"、"ERROR"、"CRITICAL"/"FATAL"（大小写不敏感）。
+                level: 日志等级。支持 int 或字符串，默认 "DEBUG"。根据等级过滤后交给 handler 输出。
+                    常用等级：DEBUG(10), INFO(20), SUCCESS(25), WARNING(30), PROGRESS(35), ERROR(40), CRITICAL(50)。
+                    字符串支持："DEBUG"、"INFO"、"PROGRESS"、"SUCCESS"、"WARNING"/"WARN"、"ERROR"、"CRITICAL"/"FATAL"（大小写不敏感）。
             stream: 输出流，默认 sys.stdout。
             message_only: 是否仅输出日志消息（不包含时间与等级），默认 False。
 
@@ -129,6 +146,7 @@ def setup_logger(
             logger.debug("这是一条调试信息")      # 青色
             logger.info("这是一条普通信息")       # 白色/默认
             logger.success("这是一条成功信息")    # 绿色
+            logger.progress("这是一条进度信息")   # 蓝色
             logger.warning("这是一条警告信息")    # 黄色
             logger.error("这是一条错误信息")      # 红色
             logger.critical("这是一条严重错误信息")  # 紫色

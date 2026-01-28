@@ -21,7 +21,7 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
     :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
     :param return_field: 返回字段，支持以下：
         "progress_info" 表示完整进度信息，"remaining_time" 表示剩余时间，"end_time" 表示预计完成时间
-    :param level: 日志等级，支持 DEBUG/INFO/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL。为空时仅 print。
+    :param level: 日志等级，支持 DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL。为空时仅 print。
     :return: 根据 return_field 参数返回不同的信息
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
