@@ -358,7 +358,7 @@ for ip in test_ips:
 
 ```python
 import pandas as pd
-from funcguard import pd_fill_null, pd_round_columns, pd_convert_columns, pd_convert_decimal
+from funcguard import pd_fill_na, pd_round_columns, pd_convert_columns, pd_convert_decimal
 from decimal import Decimal
 
 # 创建示例DataFrame
@@ -371,7 +371,7 @@ df = pd.DataFrame({
 })
 
 # 1. 填充空值
-df = pd_fill_null(df, {'name': '未知'}, None)  # 将name列的空值填充为'未知'
+df = pd_fill_na(df, {'name': '未知'}, None)  # 将name列的空值填充为'未知'
 
 # 2. 四舍五入指定列
 df = pd_round_columns(df, ['age'], 0)  # 将age列四舍五入到整数
@@ -387,7 +387,7 @@ df = pd_convert_columns(df, {
 df = pd_convert_decimal(df, ['salary'], 'float')  # 将salary列的Decimal转换为float
 
 # 5. 批量处理多个列
-df = pd_fill_null(df, ['score'], 0)  # 将score列的空值填充为0
+df = pd_fill_na(df, ['score'], 0)  # 将score列的空值填充为0
 df = pd_round_columns(df, ['score'], 1)  # 将score列四舍五入到1位小数
 
 print(df)
@@ -638,7 +638,7 @@ print(f"当前价格: {current_price}, 变化: {price_change}")  # 输出: 当�
 
 ### funcguard.pd_utils
 
-#### pd_fill_null(df, columns, fill_value)
+#### pd_fill_na(df, columns, fill_value)
 
 - **参数**:
   - `df`: pandas DataFrame

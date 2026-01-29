@@ -3,7 +3,7 @@ from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype
 from typing import Union, List, Any, Dict
 
 
-def fill_null(
+def fill_na(
     df: pd.DataFrame, columns: Union[List[str], Dict[str, Any]], fill_value: Any
 ) -> pd.DataFrame:
     """

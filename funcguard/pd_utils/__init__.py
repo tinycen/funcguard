@@ -1,4 +1,4 @@
-from .fill_round import fill_null, fill_nat, round_columns
+from .fill_round import fill_na, fill_nat, round_columns
 from .convert_utils import convert_columns, convert_decimal, load_json, convert_str_datetime, convert_datetime_str
 import pandas as pd
 
@@ -7,7 +7,7 @@ pd.set_option("future.no_silent_downcasting", True)
 
 
 __all__ = [
-	'fill_null',
+	'fill_na',
     'fill_nat',
 	'round_columns',
 	'convert_columns',
