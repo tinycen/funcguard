@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
@@ -32,7 +32,12 @@ def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
         raise ValueError(f"不支持的运算符: {op}")
 
 
-def build_base_mask(df: pd.DataFrame, conditions: List[Tuple], logic: str = "and") -> pd.Series:
+def build_base_mask(df: pd.DataFrame, 
+    conditions: List[Tuple],
+    logic: str = "and",
+    true_mask: Optional[pd.Series] = None,
+    false_mask: Optional[pd.Series] = None
+ ) -> pd.Series:
     """
     构建基础查询条件掩码
     
@@ -40,6 +45,8 @@ def build_base_mask(df: pd.DataFrame, conditions: List[Tuple], logic: str = "and
     - df (pd.DataFrame)：输入的DataFrame
     - conditions (List[Tuple])：条件列表，每个元组包含(列名, 运算符, 值)
     - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
+    - true_mask (pd.Series)：初始True掩码，默认为None
+    - false_mask (pd.Series)：初始False掩码，默认为None
     
     返回：
     - pd.Series：布尔掩码，True表示符合条件的行
@@ -51,10 +58,10 @@ def build_base_mask(df: pd.DataFrame, conditions: List[Tuple], logic: str = "and
     - 如需复杂的嵌套逻辑组合，请使用 combine_masks 方法。
     """
     if logic == "and":
-        mask = pd.Series([True] * len(df), index=df.index)
+        mask = true_mask if true_mask is not None else pd.Series([True] * len(df), index=df.index)
         operator_func = lambda m, c: m & c
     elif logic == "or":
-        mask = pd.Series([False] * len(df), index=df.index)
+        mask = false_mask if false_mask is not None else pd.Series([False] * len(df), index=df.index)
         operator_func = lambda m, c: m | c
     else:
         raise ValueError(f"不支持的逻辑操作类型: {logic}，支持 'and' 或 'or'")
