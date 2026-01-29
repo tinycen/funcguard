@@ -4,7 +4,9 @@ from typing import Union, List, Any, Dict
 
 
 def fill_na(
-    df: pd.DataFrame, columns: Union[List[str], Dict[str, Any]], fill_value: Any
+    df: pd.DataFrame,
+    columns: Union[List[str], Dict[str, Any]],
+    fill_value: Any = ""
 ) -> pd.DataFrame:
     """
     替换DataFrame中指定列的空值为指定值。
