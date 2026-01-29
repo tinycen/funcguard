@@ -1,6 +1,38 @@
 import pandas as pd
 from typing import Union, List, Any, Dict, Tuple
 
+
+
+def _build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
+    """
+    构建单个掩码，用于简单条件判断
+    
+    参数：
+    - df (pd.DataFrame)：输入的DataFrame
+    - condition (Tuple)：条件元组，包含(列名, 运算符, 值)
+    
+    返回：
+    - pd.Series：布尔掩码，True表示符合条件的行
+        **注意**：此Series是通过原生pandas表达式(df[col] > value)直接返回，
+        无额外内存分配和位运算，性能最优。适用于简单单一条件场景。
+    """
+    column, op, value = condition   
+    if op == ">":
+        return df[column] > value
+    elif op == ">=":
+        return df[column] >= value
+    elif op == "<":
+        return df[column] < value
+    elif op == "<=":
+        return df[column] <= value
+    elif op == "==":
+        return df[column] == value
+    elif op == "!=":
+        return df[column] != value
+    else:
+        raise ValueError(f"不支持的运算符: {op}")
+
+
 def build_base_mask(df: pd.DataFrame, conditions: List[Tuple], logic: str = "and") -> pd.Series:
     """
     构建基础查询条件掩码
@@ -28,22 +60,8 @@ def build_base_mask(df: pd.DataFrame, conditions: List[Tuple], logic: str = "and
     else:
         raise ValueError(f"不支持的逻辑操作类型: {logic}，支持 'and' 或 'or'")
     
-    for column, op, value in conditions:
-        if op == ">":
-            condition_mask = df[column] > value
-        elif op == ">=":
-            condition_mask = df[column] >= value
-        elif op == "<":
-            condition_mask = df[column] < value
-        elif op == "<=":
-            condition_mask = df[column] <= value
-        elif op == "==":
-            condition_mask = df[column] == value
-        elif op == "!=":
-            condition_mask = df[column] != value
-        else:
-            raise ValueError(f"不支持的运算符: {op}")
-        
+    for condition in conditions:
+        condition_mask = _build_single_mask(df, condition)
         mask = operator_func(mask, condition_mask)
     
     return mask
@@ -84,35 +102,6 @@ def combine_masks(masks: List[pd.Series], logic: str = "and") -> pd.Series:
     
     return result_mask
 
-
-def _build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
-    """
-    构建单个掩码，用于简单条件判断
-    
-    参数：
-    - df (pd.DataFrame)：输入的DataFrame
-    - condition (Tuple)：条件元组，包含(列名, 运算符, 值)
-    
-    返回：
-    - pd.Series：布尔掩码，True表示符合条件的行
-        **注意**：此Series是通过原生pandas表达式(df[col] > value)直接返回，
-        无额外内存分配和位运算，性能最优。适用于简单单一条件场景。
-    """
-    column, op, value = condition   
-    if op == ">":
-        return df[column] > value
-    elif op == ">=":
-        return df[column] >= value
-    elif op == "<":
-        return df[column] < value
-    elif op == "<=":
-        return df[column] <= value
-    elif op == "==":
-        return df[column] == value
-    elif op == "!=":
-        return df[column] != value
-    else:
-        raise ValueError(f"不支持的运算符: {op}")
 
 def count(df: pd.DataFrame, conditions: Union[Tuple, List[Tuple]], logic: str = "and") -> int:
     """
