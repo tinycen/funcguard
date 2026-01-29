@@ -12,6 +12,11 @@ from .pd_utils import (
     convert_str_datetime as pd_convert_str_datetime,
     convert_datetime_str as pd_convert_datetime_str,
     load_json as pd_load_json,
+    pd_build_mask,
+    pd_build_masks,
+    pd_combine_masks,
+    pd_count,
+    DataFrameStatistics,
 
 )
 from .calculate import format_difference
@@ -62,6 +67,13 @@ __all__ = [
     "pd_convert_datetime_str",
     "pd_load_json",
     "pd_fill_nat",
+    
+    # 统计分析类
+    "pd_build_mask",
+    "pd_build_masks",
+    "pd_combine_masks",
+    "pd_count",
+    "DataFrameStatistics",
     
     # 计算工具
     "format_difference",
