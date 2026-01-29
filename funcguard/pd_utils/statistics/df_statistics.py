@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import  Any, Dict, List, Tuple, Union, Optional
-from .mask_utils import build_single_mask, build_base_mask as _original_build_base_mask, combine_masks
+from .mask_utils import build_single_mask as _original_build_single_mask, build_base_mask as _original_build_base_mask, combine_masks
 from .count_utils import count as _original_count
 
 
@@ -32,7 +32,6 @@ class DataFrameStatistics:
         self._reset_base_masks()
 
         # 方法继承
-        self.build_single_mask = build_single_mask
         self.combine_masks = combine_masks
 
 
@@ -41,6 +40,7 @@ class DataFrameStatistics:
         """重置基础掩码为全True和全False"""
         self._true_mask = pd.Series([True] * self._length, index=self._index)
         self._false_mask = pd.Series([False] * self._length, index=self._index)
+
 
     def build_base_mask(self, conditions: List[Tuple], logic: str = "and", 
                        true_mask: Optional[pd.Series] = None, 
@@ -63,6 +63,22 @@ class DataFrameStatistics:
         if false_mask is None:
             false_mask = self._false_mask
         return _original_build_base_mask(self._df, conditions, logic, true_mask, false_mask)
+
+
+    def build_single_mask(self, condition: Tuple) -> pd.Series:
+        """
+        构建单个掩码，用于简单条件判断，自动使用内部DataFrame
+        
+        参数：
+        - condition (Tuple)：条件元组，包含(列名, 运算符, 值)
+        
+        返回：
+        - pd.Series：布尔掩码，True表示符合条件的行
+            **注意**：此Series是通过原生pandas表达式(df[col] > value)直接返回，
+            无额外内存分配和位运算，性能最优。适用于简单单一条件场景。
+        """
+        return _original_build_single_mask(self._df, condition)
+
 
     def count(self, conditions: Union[Tuple, List[Tuple]], logic: str = "and",
              true_mask: Optional[pd.Series] = None, 
