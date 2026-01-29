@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import Union, List, Any, Dict, Tuple
+from .mask_utils import build_single_mask
 
 
 class DataFrameStatistics:
@@ -39,34 +40,6 @@ class DataFrameStatistics:
             self._false_mask = pd.Series([False] * self._length, index=self._index)
         return self._false_mask
     
-    def _build_single_mask(self, condition: Tuple) -> pd.Series:
-        """
-        构建单个条件掩码，复用DataFrame的索引
-        
-        参数：
-        - condition (Tuple): 条件元组，包含(列名, 运算符, 值)
-        
-        返回：
-        - pd.Series: 布尔掩码，True表示符合条件的行
-        """
-        column, op, value = condition
-        df = self._df
-        
-        if op == ">":
-            return df[column] > value
-        elif op == ">=":
-            return df[column] >= value
-        elif op == "<":
-            return df[column] < value
-        elif op == "<=":
-            return df[column] <= value
-        elif op == "==":
-            return df[column] == value
-        elif op == "!=":
-            return df[column] != value
-        else:
-            raise ValueError(f"不支持的运算符: {op}")
-    
     def build_base_mask(self, conditions: List[Tuple], logic: str = "and") -> pd.Series:
         """
         构建基础查询条件掩码，复用基础Series对象
@@ -88,7 +61,7 @@ class DataFrameStatistics:
             raise ValueError(f"不支持的逻辑操作类型: {logic}，支持 'and' 或 'or'")
         
         for condition in conditions:
-            condition_mask = self._build_single_mask(condition)
+            condition_mask = build_single_mask(self._df, condition)
             mask = operator_func(mask, condition_mask)
         
         return mask
@@ -106,18 +79,17 @@ class DataFrameStatistics:
         """
         # 单一条件
         if isinstance(conditions, tuple):
-            mask = self._build_single_mask(conditions)
+            mask = build_single_mask(self._df, conditions)
             return int(mask.sum())
         
         # 多条件
         mask = self.build_base_mask(conditions, logic)
         return int(mask.sum())
     
-    def get_dataframe_info(self) -> Dict[str, Any]:
+    def dataframe_info(self) -> Dict[str, Any]:
         """获取DataFrame的基本信息"""
         return {
             "shape": self._df.shape,
             "columns": list(self._df.columns),
             "dtypes": self._df.dtypes.to_dict(),
-            "memory_usage": self._df.memory_usage(deep=True).sum()
         }
