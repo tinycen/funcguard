@@ -131,4 +131,3 @@ def count(df: pd.DataFrame, conditions: Union[Tuple, List[Tuple]], logic: str = 
     
     # 使用sum方法计算True的数量（True被视为1，False被视为0）
     return int(mask.sum())
-
