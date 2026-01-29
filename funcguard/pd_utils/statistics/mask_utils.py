@@ -28,8 +28,18 @@ def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
         return df[column] == value
     elif op == "!=":
         return df[column] != value
-    elif op == "isin":
+    elif op == "in":
         return df[column].isin(value)
+    elif op == "not in":
+        return ~df[column].isin(value)
+    elif op == "null":
+        return df[column].isnull()
+    elif op == "not null":
+        return df[column].notnull()
+    elif op == "contains":
+        return df[column].str.contains(value, na=False)
+    elif op == "not contains":
+        return ~df[column].str.contains(value, na=False)
     else:
         raise ValueError(f"不支持的运算符: {op}")
 
