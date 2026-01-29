@@ -114,7 +114,7 @@ def _build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
     else:
         raise ValueError(f"不支持的运算符: {op}")
 
-def count(df: pd.DataFrame, conditions: Union[Tuple, List[Tuple]]) -> int:
+def count(df: pd.DataFrame, conditions: Union[Tuple, List[Tuple]], logic: str = "and") -> int:
     """
     使用int sum 方法，统计DataFrame中符合条件的非空值数量。
     - 该方法将DataFrame中符合条件的行转换为布尔值（True/False），
@@ -126,7 +126,9 @@ def count(df: pd.DataFrame, conditions: Union[Tuple, List[Tuple]]) -> int:
         每个元组包含三部分：列名、运算符（例如 ">"、"<"、"=="、"!=" ）和值。 示例：   
         示例1：元组 ("column", ">", 0)
         示例2：列表 [("column", ">", 0), ("column2", "==", "value")]。
-
+    
+    - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
+    
     返回：
     - int：符合条件的数量。
     """
@@ -136,7 +138,7 @@ def count(df: pd.DataFrame, conditions: Union[Tuple, List[Tuple]]) -> int:
         return int(mask.sum())
     
     # 使用独立的函数构建查询条件掩码
-    mask = build_base_mask(df, conditions)
+    mask = build_base_mask(df, conditions, logic)
     
     # 使用sum方法计算True的数量（True被视为1，False被视为0）
     return int(mask.sum())
