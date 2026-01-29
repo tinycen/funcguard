@@ -14,7 +14,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 - 函数执行时间监控和警告
 - IP地址检测（局域网IP和公网IP）
 - 时间等待功能（带倒计时显示）
-- pandas数据处理工具（空值填充、列类型转换、Decimal转换、JSON字符串转换等）
+- pandas数据处理工具（详见[pd_utils文档](docs/pd_utils.md)）
 - 数值差异格式化工具（格式化数值变化，如+5、-3等）
 
 ## 安装/升级
@@ -354,71 +354,27 @@ for ip in test_ips:
 
 ### pandas数据处理工具
 
-使用pandas工具进行数据处理和类型转换：
+FuncGuard提供了丰富的pandas数据处理功能，包括数据填充、类型转换、JSON处理、统计分析等。详细使用方法请参考[pd_utils文档](docs/pd_utils.md)。
 
 ```python
 import pandas as pd
-from funcguard import pd_fill_na, pd_round_columns, pd_convert_columns, pd_convert_decimal
-from decimal import Decimal
+from funcguard.pd_utils import fill_na, convert_columns, round_columns, load_json
 
-# 创建示例DataFrame
+# 快速示例
 df = pd.DataFrame({
     'name': ['张三', '李四', None, '王五'],
     'age': [25.7, 30.2, 28.9, 35.1],
-    'salary': [Decimal('5000.50'), Decimal('6000.75'), Decimal('5500.25'), Decimal('7000.00')],
-    'score': [85.678, 92.345, 78.901, 88.234],
-    'join_date': ['2023-01-15', '2023-02-20', '2023-03-10', '2023-04-05']
+    'config': ['{"timeout": 30}', '{"timeout": 60}', '', '{"timeout": 90}']
 })
 
-# 1. 填充空值
-df = pd_fill_na(df, {'name': '未知'}, None)  # 将name列的空值填充为'未知'
+# 数据填充
+df = fill_na(df, {'name': '未知'})
 
-# 2. 四舍五入指定列
-df = pd_round_columns(df, ['age'], 0)  # 将age列四舍五入到整数
+# 类型转换
+df = convert_columns(df, {'age': 'int'})
 
-# 3. 转换列数据类型
-df = pd_convert_columns(df, {
-    'age': 'int',
-    'join_date': 'datetime',
-    'name': 'str'
-})
-
-# 4. 转换Decimal类型
-df = pd_convert_decimal(df, ['salary'], 'float')  # 将salary列的Decimal转换为float
-
-# 5. 批量处理多个列
-df = pd_fill_na(df, ['score'], 0)  # 将score列的空值填充为0
-df = pd_round_columns(df, ['score'], 1)  # 将score列四舍五入到1位小数
-
-print(df)
-print(df.dtypes)
-```
-
-### JSON字符串转换
-
-使用`pd_load_json`函数将DataFrame中的JSON字符串列转换为Python对象：
-
-```python
-import pandas as pd
-from funcguard import pd_load_json
-
-# 创建包含JSON字符串的示例DataFrame
-df = pd.DataFrame({
-    'id': [1, 2, 3],
-    'config': ['{"timeout": 30, "retry": 3}', '{"timeout": 60, "retry": 5}', ''],
-    'metadata': ['{"version": "1.0", "env": "prod"}', '', '{"version": "2.0", "env": "dev"}']
-})
-
-# 将JSON字符串列转换为Python对象
-df = pd_load_json(df, ['config', 'metadata'])
-
-# 现在可以直接访问转换后的对象
-print(df['config'][0]['timeout'])  # 输出: 30
-print(df['metadata'][2]['version'])  # 输出: 2.0
-
-# 处理空字符串（默认转换为{}）
-print(df['config'][2])  # 输出: {}
-print(df['metadata'][1])  # 输出: {}
+# JSON解析
+df = load_json(df, ['config'])
 ```
 
 ### 数值差异格式化
@@ -638,49 +594,28 @@ print(f"当前价格: {current_price}, 变化: {price_change}")  # 输出: 当�
 
 ### funcguard.pd_utils
 
-#### pd_fill_na(df, columns, fill_value)
+pandas数据处理工具已重构为新的API，详细文档请参考[pd_utils文档](docs/pd_utils.md)。
 
-- **参数**:
-  - `df`: pandas DataFrame
-  - `columns`: 要填充的列，可以是List[str]或Dict[str, Any]。为列表时，所有列使用相同的fill_value；为字典时，键为列名，值为对应的填充值
-  - `fill_value`: 填充值，当columns为列表时使用
-- **返回值**: 填充后的DataFrame
-- **功能**: 替换DataFrame中指定列的空值为指定值
+主要功能包括：
+- **数据填充**：空值填充、NaT时间填充
+- **类型转换**：列类型转换、Decimal转换、日期时间转换  
+- **JSON处理**：JSON字符串解析和转换
+- **统计分析**：高性能的条件统计、掩码构建、组合查询
+- **数据格式化**：列四舍五入、字符串格式化
 
-#### pd_round_columns(df, columns, digits=0)
+简单示例：
+```python
+from funcguard.pd_utils import fill_na, convert_columns, round_columns
 
-- **参数**:
-  - `df`: pandas DataFrame
-  - `columns`: 要进行四舍五入的列名列表
-  - `digits`: 保留的小数位数，默认为0
-- **返回值**: 四舍五入后的DataFrame
-- **功能**: 对DataFrame中指定列进行四舍五入操作
+# 数据填充
+df = fill_na(df, {'name': '未知'})
 
-#### pd_convert_columns(df, columns)
+# 类型转换  
+df = convert_columns(df, {'age': 'int'})
 
-- **参数**:
-  - `df`: pandas DataFrame
-  - `columns`: 要转换类型的字典，键为列名，值为目标数据类型。支持的数据类型：'int', 'float', 'str', 'bool', 'datetime'
-- **返回值**: 列类型转换后的DataFrame
-- **功能**: 转换DataFrame中指定列的数据类型
-
-#### pd_convert_decimal(df, columns=None, default_type='int')
-
-- **参数**:
-  - `df`: pandas DataFrame
-  - `columns`: 要处理的列，可以是None、List[str]或Dict[str, str]。为None时检测所有列；为列表时检测指定列并使用default_type转换；为字典时键为列名，值为目标类型('int'或'float')
-  - `default_type`: 默认转换类型，'int'或'float'，默认为'int'
-- **返回值**: 转换后的DataFrame
-- **功能**: 检测DataFrame中是否包含Decimal类型的字段，如果包含则转换为指定的数据类型
-- **注意**: 只有object类型的列才可能包含Decimal类型数据
-
-#### pd_load_json(df, columns, empty_to_dict=True)
-
-- **参数**:
-  - `df`: pandas DataFrame
-  - `columns`: 要转换的列名列表
-  - `empty_to_dict`: 是否将空字符串转换为{}，默认为True
-- **返回值**: JSON转换后的DataFrame
+# 四舍五入
+df = round_columns(df, ['salary'], 2)
+```
 - **功能**: 对DataFrame中指定的列执行json.loads操作，将JSON字符串转换为Python对象
 
 

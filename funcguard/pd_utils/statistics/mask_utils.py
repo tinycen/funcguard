@@ -40,6 +40,10 @@ def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
         return df[column].str.contains(value, na=False)
     elif op == "not contains":
         return ~df[column].str.contains(value, na=False)
+    elif op == "startswith":
+        return df[column].str.startswith(value, na=False)
+    elif op == "endswith":
+        return df[column].str.endswith(value, na=False)
     else:
         raise ValueError(f"不支持的运算符: {op}")
 
