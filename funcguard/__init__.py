@@ -1,6 +1,10 @@
 from .core import timeout_handler, retry_function
 from .tools import send_request, encode_basic_auth
-from .time_utils import time_log, time_diff, time_monitor, time_wait, color_logger
+from .time_utils import (
+    time_log, time_diff, time_monitor, time_wait, color_logger,
+    get_now_time, generate_timestamp,
+)
+
 from .printer import print_block, print_line, print_title, print_progress
 from .ip_utils import get_local_ip, get_public_ip, is_valid_ip, get_ip_info
 from .pd_utils import (
@@ -42,6 +46,8 @@ __all__ = [
     "time_monitor",
     "time_wait",
     "color_logger",
+    "get_now_time",
+    "generate_timestamp",
 
     # 打印工具
     "print_block",

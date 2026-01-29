@@ -176,6 +176,64 @@ def time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwarg
     return result
 
 
+# 获取当前的时间
+def get_now_time( from_timezone = "local", remove_tzinfo = True ):
+    if from_timezone == "local" :
+        now_time = datetime.now()  # 获取当前本地时间 (tz-naive) ，不包含时区信息
+
+    elif from_timezone == "utc" :
+        now_time = datetime.now( timezone.utc )  # 获取当前UTC时间 (tz-aware) ，包含时区信息
+
+    elif from_timezone == "beijing" :   # 固定北京时间 (tz-aware) ，包含时区信息
+        now_time = datetime.now( timezone( timedelta( hours = 8 ) ) )
+
+    else :    
+        raise ValueError( "Invalid timezone , must be 'local' , 'utc' , 'beijing' " )
+        
+    if remove_tzinfo:
+        return now_time.replace( tzinfo = None )
+
+    return now_time
+
+
+# 获取时间戳
+def generate_timestamp( from_timezone = "local", fmt = "millis", utc_z = False ) :
+    """
+    获取当前时间戳或格式化时间字符串
+    
+    :param from_timezone: 时区选择，决定返回的时间对象类型：
+        - "local": 返回本地时间的 naive 对象（不含时区信息）。
+        - "utc": 返回 UTC 时间的 aware 对象（包含 UTC 时区信息）。
+        - "beijing": 返回北京时间的 aware 对象（包含 UTC+8 时区信息）。
+        
+        naive vs aware 的区别：
+        - naive (无时区信息)：不包含时区信息的对象。它仅表示一个日期和时间，但不知道自己处于哪个时区。其含义取决于运行环境。
+        - aware (有时区信息)：包含时区信息的对象。它能够准确地定位自己在绝对时间轴上的位置。
+        - naive 和 aware 不能直接进行比较/计算，因为 naive 对象没有时区信息，无法确定其在时间轴上的具体位置。
+
+    :param utc_z: 是否在 UTC 的 iso 格式后追加 Z 标志 (仅在 fmt="iso" 且时区为 UTC 时有效)
+    :return: 根据 fmt 返回对应值
+    """
+    now_time = get_now_time( from_timezone, remove_tzinfo = False )
+
+    # 格式化为ISO 8601标准格式
+    if fmt == "iso" :
+        if from_timezone == "utc" and utc_z :
+            return now_time.strftime( '%Y-%m-%dT%H:%M:%SZ' )
+        
+        return now_time.strftime( '%Y-%m-%dT%H:%M:%S' )
+
+    # 转换为毫秒级时间戳
+    elif fmt == "millis" :
+        return int( now_time.timestamp() * 1000 )
+
+    elif fmt == "str" :
+        return now_time.strftime( '%Y-%m-%d %H:%M:%S' )
+
+    else :
+        raise ValueError( "Invalid fmt , must be 'millis' , 'iso' or 'str'" )
+
+
 # 时间等待
 def time_wait(seconds: int = 10):
     """
