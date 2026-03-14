@@ -16,6 +16,7 @@ from .pd_utils import (
     convert_str_datetime as pd_convert_str_datetime,
     convert_datetime_str as pd_convert_datetime_str,
     load_json as pd_load_json,
+    pd_filter,
     pd_build_mask,
     pd_build_masks,
     pd_combine_masks,
@@ -73,7 +74,10 @@ __all__ = [
     "pd_convert_datetime_str",
     "pd_load_json",
     "pd_fill_nat",
-    
+
+    # 数据筛选类
+    "pd_filter",
+
     # 统计分析类
     "pd_build_mask",
     "pd_build_masks",
