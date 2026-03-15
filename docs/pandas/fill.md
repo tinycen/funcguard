@@ -34,3 +34,25 @@ df = fill_nat(df, ['create_time', 'update_time'], '1970-01-01')
 # 批量填充所有时间类型列
 df = fill_nat(df, ['create_time'])
 ```
+
+## cal_date_diff - 日期差值计算填充
+
+计算 DataFrame 中两列日期的时间差，并将结果填充到指定列。支持自动将字符串类型日期转换为 datetime 类型。
+
+```python
+from funcguard.pd_utils import cal_date_diff
+
+# 计算两列日期的小时差，结果填充到 duration 列
+df = cal_date_diff(df, target_column='duration', old_date_column='start_time', new_date_column='end_time')
+
+# 计算天数差，保留 2 位小数
+df = cal_date_diff(df, target_column='days_diff', old_date_column='create_time', new_date_column='update_time', unit='day', decimal_places=2)
+```
+
+**参数说明：**
+- `df`: 输入的 DataFrame
+- `target_column`: 要填充计算结果的列名
+- `old_date_column`: 原始日期列名
+- `new_date_column`: 新日期列名
+- `unit`: 返回单位，`"h"` 返回小时数，`"day"` 返回天数，默认为 `"h"`
+- `decimal_places`: 保留的小数位数，默认为 1

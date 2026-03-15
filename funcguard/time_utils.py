@@ -177,7 +177,7 @@ def time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwarg
 
 
 # 获取当前的时间
-def get_now_time( from_timezone = "local", remove_tzinfo = True ):
+def get_now( from_timezone = "local", remove_tzinfo = True ):
     if from_timezone == "local" :
         now_time = datetime.now()  # 获取当前本地时间 (tz-naive) ，不包含时区信息
 
@@ -214,7 +214,7 @@ def generate_timestamp( from_timezone = "local", fmt = "millis", utc_z = False )
     :param utc_z: 是否在 UTC 的 iso 格式后追加 Z 标志 (仅在 fmt="iso" 且时区为 UTC 时有效)
     :return: 根据 fmt 返回对应值
     """
-    now_time = get_now_time( from_timezone, remove_tzinfo = False )
+    now_time = get_now( from_timezone, remove_tzinfo = False )
 
     # 格式化为ISO 8601标准格式
     if fmt == "iso" :
