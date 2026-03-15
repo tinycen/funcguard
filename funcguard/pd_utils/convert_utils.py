@@ -50,7 +50,7 @@ def convert_columns(df: pd.DataFrame, columns: Dict[str, str]) -> pd.DataFrame:
 def convert_decimal(
     df: pd.DataFrame,
     columns: Union[List[str], Dict[str, str], None] = None,
-    default_type: str = "int",
+    target_type: str = "int",
 ) -> pd.DataFrame:
     """
     检测DataFrame中是否包含Decimal类型的字段，如果包含则转换为指定的数据类型。
@@ -59,9 +59,9 @@ def convert_decimal(
     - df (pd.DataFrame)：输入的DataFrame。
     - columns (List[str], Dict[str, str], or None)：
         * 如果为None，则检测所有列
-        * 如果为List[str]，则检测指定列，发现Decimal时转换为default_type指定的类型
+        * 如果为List[str]，则检测指定列，发现Decimal时转换为target_type指定的类型
         * 如果为Dict[str, str]，则键为列名，值为当发现Decimal时要转换的目标类型（支持'int'或'float'）
-    - default_type (str, optional)：当columns为列表时的默认转换类型，默认为'int'。
+    - target_type (str, optional)：当columns为列表时的默认转换类型，默认为'int'。
                                 支持'int'或'float'。
 
     返回：
@@ -70,17 +70,17 @@ def convert_decimal(
     if columns is None:
         # 检测所有列
         target_columns = df.columns.tolist()
-        column_types = {col: default_type for col in target_columns}
+        column_types = {col: target_type for col in target_columns}
     elif isinstance(columns, list):
         # 检测指定列，使用默认类型
         target_columns = columns
-        column_types = {col: default_type for col in target_columns}
+        column_types = {col: target_type for col in target_columns}
     elif isinstance(columns, dict):
         # 使用字典指定的类型
         target_columns = list(columns.keys())
         column_types = columns
 
-    # 验证default_type和字典中的类型是否有效
+    # 验证target_type和字典中的类型是否有效
     valid_types = {"int", "float"}
     for col, target_type in column_types.items():
         if target_type not in valid_types:
