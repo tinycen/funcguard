@@ -2,7 +2,7 @@ from .core import timeout_handler, retry_function
 from .tools import send_request, encode_basic_auth
 from .time_utils import (
     time_log, time_diff, time_monitor, time_wait, color_logger,
-    get_now_time, generate_timestamp, cal_date_diff
+    get_now, generate_timestamp, cal_date_diff
 )
 
 from .printer import print_block, print_line, print_title, print_progress
@@ -55,7 +55,7 @@ __all__ = [
     "time_monitor",
     "time_wait",
     "color_logger",
-    "get_now_time",
+    "get_now",
     "generate_timestamp",
     "cal_date_diff",
 
