@@ -234,6 +234,36 @@ def generate_timestamp( from_timezone = "local", fmt = "millis", utc_z = False )
         raise ValueError( "Invalid fmt , must be 'millis' , 'iso' or 'str'" )
 
 
+# 计算日期差值
+def cal_date_diff(
+    old_date: datetime,
+    new_date: datetime,
+    unit: str = "h",
+    decimal_places: int = 1,
+) -> int | float:
+    """
+    计算两个日期的差值。
+
+    Args:
+        old_date: 原始日期
+        new_date: 新日期
+        unit: 返回单位，"h" 返回小时数，"day" 返回天数
+        decimal_places: 保留的小数位数，默认为1
+
+    Returns:
+        int | float: 日期差值
+    """
+    diff = new_date - old_date
+    total_seconds = diff.total_seconds()
+
+    if unit == "h":
+        return round(total_seconds / 3600, decimal_places)
+    elif unit == "day":
+        return round(total_seconds / 86400, decimal_places)
+    else:
+        raise ValueError("unit must be 'h' or 'day'")
+
+
 # 时间等待
 def time_wait(seconds: int = 10):
     """

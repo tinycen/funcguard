@@ -2,20 +2,28 @@ from .core import timeout_handler, retry_function
 from .tools import send_request, encode_basic_auth
 from .time_utils import (
     time_log, time_diff, time_monitor, time_wait, color_logger,
-    get_now_time, generate_timestamp,
+    get_now_time, generate_timestamp, cal_date_diff
 )
 
 from .printer import print_block, print_line, print_title, print_progress
 from .ip_utils import get_local_ip, get_public_ip, is_valid_ip, get_ip_info
 from .pd_utils import (
+    # 数据填充类
     fill_na as pd_fill_na,
     fill_nat as pd_fill_nat,
     round_columns as pd_round_columns,
+    cal_date_diff as pd_cal_date_diff,
+
+    # 数据类型转换类
     convert_columns as pd_convert_columns,
     convert_decimal as pd_convert_decimal,
     convert_str_datetime as pd_convert_str_datetime,
     convert_datetime_str as pd_convert_datetime_str,
+
+    # JSON 工具
     load_json as pd_load_json,
+
+    # 数据筛选类
     pd_filter,
     pd_build_mask,
     pd_build_masks,
@@ -49,6 +57,7 @@ __all__ = [
     "color_logger",
     "get_now_time",
     "generate_timestamp",
+    "cal_date_diff",
 
     # 打印工具
     "print_block",
@@ -68,6 +77,7 @@ __all__ = [
     # pandas 数据处理工具
     "pd_fill_na",
     "pd_round_columns",
+    "pd_cal_date_diff",
     "pd_convert_columns",
     "pd_convert_decimal",
     "pd_convert_str_datetime",
