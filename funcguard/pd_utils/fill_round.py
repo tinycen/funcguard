@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime
 from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype, is_numeric_dtype
 from typing import Union, List, Any, Dict, Optional
 from .convert_utils import convert_numeric_series
@@ -91,7 +92,7 @@ def cal_date_diff(
     df: pd.DataFrame,
     target_column: str,
     old_date_column: str,
-    new_date_column: str,
+    new_date: Union[str, datetime],
     unit: str = "h",
     decimal_places: int = 1
 ) -> pd.DataFrame:
@@ -102,7 +103,7 @@ def cal_date_diff(
     - df (pd.DataFrame)：输入的DataFrame。
     - target_column (str)：要填充计算结果的列名。
     - old_date_column (str)：原始日期列名。
-    - new_date_column (str)：新日期列名。
+    - new_date (str | datetime)：新日期，可以是列名字符串或datetime对象。
     - unit (str, optional)：返回单位，"h" 返回小时数，"day" 返回天数，默认为"h"。
     - decimal_places (int, optional)：保留的小数位数，默认为1。
 
@@ -111,20 +112,28 @@ def cal_date_diff(
     """
     if old_date_column not in df.columns:
         raise ValueError(f"列 '{old_date_column}' 不存在于DataFrame中")
-    if new_date_column not in df.columns:
-        raise ValueError(f"列 '{new_date_column}' 不存在于DataFrame中")
 
     old_date = df[old_date_column]
-    new_date = df[new_date_column]
 
     # 如果日期列为字符串类型（object 或 string），则转换为 datetime 类型
     # errors="coerce" 表示将无法解析的日期字符串转换为 NaT（Not a Time），而不是抛出错误
     if old_date.dtype == object or str(old_date.dtype) == "string":
         old_date = pd.to_datetime(old_date, errors="coerce")
-    if new_date.dtype == object or str(new_date.dtype) == "string":
-        new_date = pd.to_datetime(new_date, errors="coerce")
 
-    diff_seconds = (new_date - old_date).dt.total_seconds()  # pyright: ignore[reportAttributeAccessIssue]
+    # 判断 new_date 是列名字符串还是 datetime 对象
+    if isinstance(new_date, str):
+        if new_date not in df.columns:
+            raise ValueError(f"列 '{new_date}' 不存在于DataFrame中")
+        new_date_values = df[new_date]
+        # 如果日期列为字符串类型，则转换为 datetime 类型
+        if new_date_values.dtype == object or str(new_date_values.dtype) == "string":
+            new_date_values = pd.to_datetime(new_date_values, errors="coerce")
+    elif isinstance(new_date, datetime):
+        new_date_values = new_date
+    else:
+        raise TypeError("new_date 必须是字符串（列名）或 datetime 对象")
+
+    diff_seconds = (new_date_values - old_date).dt.total_seconds()  # pyright: ignore[reportAttributeAccessIssue]
 
     if unit == "h":
         df[target_column] = round(diff_seconds / 3600, decimal_places)
