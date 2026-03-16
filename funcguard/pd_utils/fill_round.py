@@ -1,5 +1,5 @@
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype
+from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype, is_numeric_dtype
 from typing import Union, List, Any, Dict
 
 
@@ -30,7 +30,7 @@ def fill_na(
 
 
 def round_columns(
-    df: pd.DataFrame, columns: List[str], digits: int = 0
+    df: pd.DataFrame, columns: List[str], decimal_places: int = 0
 ) -> pd.DataFrame:
     """
     对DataFrame中指定列进行四舍五入操作。
@@ -38,14 +38,16 @@ def round_columns(
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
     - columns (List[str])：要进行四舍五入的列名列表。
-    - digits (int, optional)：保留的小数位数，默认为0。
+    - decimal_places (int, optional)：保留的小数位数，默认为0。
 
     返回：
     - pd.DataFrame：四舍五入后的DataFrame。
     """
     for column in columns:
         if column in df.columns:
-            df[column] = df[column].round(digits)
+            if not is_numeric_dtype(df[column]):
+                raise TypeError(f"列 '{column}' 不是数值类型，无法执行四舍五入操作")
+            df[column] = df[column].round(decimal_places)
     return df
 
 
