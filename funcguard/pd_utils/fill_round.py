@@ -1,12 +1,14 @@
 import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype, is_numeric_dtype
-from typing import Union, List, Any, Dict
+from typing import Union, List, Any, Dict, Optional
+from .convert_utils import convert_numeric_series
 
 
 def fill_na(
     df: pd.DataFrame,
     columns: Union[List[str], Dict[str, Any]],
-    fill_value: Any = ""
+    fill_value: Any = "",
+    decimal_places: Optional[int] = None,
 ) -> pd.DataFrame:
     """
     替换DataFrame中指定列的空值为指定值。
@@ -14,18 +16,30 @@ def fill_na(
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
     - columns (List[str] or Dict[str, Any])：
-        要替换空值的列名列表或字典， 键为列名，值为要填充的值。
-    - fill_value (Any, optional)：要填充的值，默认为空字符串。
+        * 如果为List[str]，则使用fill_value填充指定列的空值
+        * 如果为Dict[str, Any]，则使用字典中对应列的value填充空值（键为列名，值为填充值）
+    - fill_value (Any, optional)：当columns为列表时的默认填充值，默认为空字符串。
+    - decimal_places (int, optional)：当进行数值转换时保留的小数位数，默认为None表示不限制
 
     返回：
     - pd.DataFrame：替换空值后的DataFrame。
     """
+    _is_numeric_fill = isinstance(fill_value, (int, float))
+
     if isinstance(columns, list):
         for column in columns:
-            df[column] = df[column].fillna(fill_value)
+            if _is_numeric_fill:
+                df[column] = df[column].astype(float).fillna(fill_value)
+                df[column] = convert_numeric_series(df[column], decimal_places)
+            else:
+                df[column] = df[column].fillna(fill_value)
     elif isinstance(columns, dict):
         for column, value in columns.items():
-            df[column] = df[column].fillna(value)
+            if isinstance(value, (int, float)):
+                df[column] = df[column].astype(float).fillna(value)
+                df[column] = convert_numeric_series(df[column], decimal_places)
+            else:
+                df[column] = df[column].fillna(value)
     return df
 
 

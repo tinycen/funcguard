@@ -1,6 +1,6 @@
 import pandas as pd
 from decimal import Decimal
-from typing import Union, List, Dict, Any
+from typing import Union, List, Dict, Any, Optional
 from pandas import (
     Int64Dtype,
     Float64Dtype,
@@ -8,6 +8,8 @@ from pandas import (
     BooleanDtype,
 )  # pyright: ignore
 from .json_utils import json_loads
+
+
 
 # 数据类型映射常量
 TYPE_MAPPING = {
@@ -19,7 +21,44 @@ TYPE_MAPPING = {
 }
 
 
-def convert_columns(df: pd.DataFrame, columns: Dict[str, str]) -> pd.DataFrame:
+def convert_numeric_series(series: pd.Series, decimal_places: Optional[int] = None) -> pd.Series:
+    """
+    将Series转换为数值类型，并自动检测应该使用 int 还是 float。
+
+    流程：
+    1. 先统一转换为 float64（确保所有值都是数值类型）
+    2. 检测非空值中是否存在小数
+    3. 如果没有小数则转换为 int64，否则保持 float64
+    4. 如果指定了decimal_places且为float类型，则执行round操作
+
+    参数：
+    - series (pd.Series)：输入的Series
+    - decimal_places (int, optional)：当结果为float类型时保留的小数位数，默认为None表示不限制
+
+    返回：
+    - pd.Series：转换后的Series
+    """
+    # 先统一转换为 float
+    series = series.astype(float)
+
+    # 检测是否存在小数
+    non_null_values = series.dropna()
+    if len(non_null_values) > 0:
+        # 检查是否有任何值有小数部分
+        has_decimal = any(non_null_values != non_null_values.round())
+        if not has_decimal:
+            # 没有小数，转换为 int64，并返回int64类型的Series
+            return series.astype("int64")
+
+    # 有小数或全是空值，保持 float64
+    # 如果指定了decimal_places，对float类型执行round操作
+    if decimal_places is not None:
+        series = series.round(decimal_places)
+    
+    return series
+
+
+def convert_columns(df: pd.DataFrame, columns: Dict[str, str], decimal_places: Optional[int] = None) -> pd.DataFrame:
     """
     转换DataFrame中指定列的数据类型。
 
@@ -28,6 +67,7 @@ def convert_columns(df: pd.DataFrame, columns: Dict[str, str]) -> pd.DataFrame:
     - columns (Dict[str, str])：
         要转换类型的字典，键为列名，值为目标数据类型。
         支持的数据类型：'int', 'float', 'str', 'bool', 'datetime'。
+    - decimal_places (int, optional)：当转换为'float'类型时保留的小数位数，默认为None表示不限制
 
     返回：
     - pd.DataFrame：列类型转换后的DataFrame。
@@ -37,6 +77,12 @@ def convert_columns(df: pd.DataFrame, columns: Dict[str, str]) -> pd.DataFrame:
             try:
                 if target_type == "datetime":
                     df[column] = pd.to_datetime(df[column], errors="coerce")
+                elif target_type == "float":
+                    df[column] = df[column].astype(
+                        TYPE_MAPPING[target_type]
+                    )  # pyright: ignore[reportArgumentType]
+                    if decimal_places is not None:
+                        df[column] = df[column].round(decimal_places)
                 else:
                     df[column] = df[column].astype(
                         TYPE_MAPPING[target_type]
@@ -51,6 +97,7 @@ def convert_decimal(
     df: pd.DataFrame,
     columns: Union[List[str], Dict[str, str], None] = None,
     target_type: str = "int",
+    decimal_places: Optional[int] = None,
 ) -> pd.DataFrame:
     """
     检测DataFrame中是否包含Decimal类型的字段，如果包含则转换为指定的数据类型。
@@ -60,9 +107,11 @@ def convert_decimal(
     - columns (List[str], Dict[str, str], or None)：
         * 如果为None，则检测所有列
         * 如果为List[str]，则检测指定列，发现Decimal时转换为target_type指定的类型
-        * 如果为Dict[str, str]，则键为列名，值为当发现Decimal时要转换的目标类型（支持'int'或'float'）
+        * 如果为Dict[str, str]，则键为列名，值为当发现Decimal时要转换的目标类型（支持'int'、'float'或'auto'）
     - target_type (str, optional)：当columns为列表时的默认转换类型，默认为'int'。
-                                支持'int'或'float'。
+                                支持'int'、'float'或'auto'。
+                                'auto'表示自动检测：先转为float，如果没有小数则转为int。
+    - decimal_places (int, optional)：当target_type为'auto'或'float'时，保留的小数位数，默认为None表示不限制
 
     返回：
     - pd.DataFrame：转换后的DataFrame。
@@ -81,7 +130,7 @@ def convert_decimal(
         column_types = columns
 
     # 验证target_type和字典中的类型是否有效
-    valid_types = {"int", "float"}
+    valid_types = {"int", "float", "auto"}
     for col, target_type in column_types.items():
         if target_type not in valid_types:
             raise ValueError(
@@ -103,6 +152,10 @@ def convert_decimal(
                 df[column] = df[column].astype(int)
             elif target_type == "float":
                 df[column] = df[column].astype(float)
+                if decimal_places is not None:
+                    df[column] = df[column].round(decimal_places)
+            elif target_type == "auto":
+                df[column] = convert_numeric_series(df[column], decimal_places)
 
     return df
 
