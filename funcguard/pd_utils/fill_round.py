@@ -94,7 +94,8 @@ def cal_date_diff(
     old_date_column: str,
     new_date: Union[str, datetime],
     unit: str = "h",
-    decimal_places: int = 1
+    decimal_places: int = 1,
+    nat: Optional[int] = None
 ) -> pd.DataFrame:
     """
     计算DataFrame中两列日期的时间差，并将结果填充到指定列。
@@ -106,6 +107,7 @@ def cal_date_diff(
     - new_date (str | datetime)：新日期，可以是列名字符串或datetime对象。
     - unit (str, optional)：返回单位，"h" 返回小时数，"day" 返回天数，默认为"h"。
     - decimal_places (int, optional)：保留的小数位数，默认为1。
+    - nat (int, optional)：当日期为NaT时的填充值，默认为None表示不特殊处理。
 
     返回：
     - pd.DataFrame：填充计算结果后的DataFrame。
@@ -136,10 +138,21 @@ def cal_date_diff(
     diff_seconds = (new_date_values - old_date).dt.total_seconds()  # pyright: ignore[reportAttributeAccessIssue]
 
     if unit == "h":
-        df[target_column] = round(diff_seconds / 3600, decimal_places)
+        result = round(diff_seconds / 3600, decimal_places)
     elif unit == "day":
-        df[target_column] = round(diff_seconds / 86400, decimal_places)
+        result = round(diff_seconds / 86400, decimal_places)
     else:
         raise ValueError("unit must be 'h' or 'day'")
+
+    # 如果指定了 nat，将 NaT 对应的结果替换为 nat
+    if nat is not None:
+        # 检测 old_date 或 new_date_values 中的 NaT
+        if isinstance(new_date_values, pd.Series):
+            nat_mask = old_date.isna() | new_date_values.isna()
+        else:
+            nat_mask = old_date.isna()
+        result = result.where(~nat_mask, nat)
+
+    df[target_column] = result
 
     return df

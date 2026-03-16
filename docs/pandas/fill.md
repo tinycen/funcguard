@@ -65,6 +65,9 @@ df = cal_date_diff(df, target_column='days_diff', old_date_column='create_time',
 
 # 使用 datetime 对象作为新日期（例如计算到当前时间的差值）
 df = cal_date_diff(df, target_column='hours_since_create', old_date_column='create_time', new_date=get_now())
+
+# 当日期存在空值时，使用指定值填充计算结果
+df = cal_date_diff(df, target_column='duration', old_date_column='start_time', new_date='end_time', nat=-1)
 ```
 
 **参数说明：**
@@ -74,3 +77,4 @@ df = cal_date_diff(df, target_column='hours_since_create', old_date_column='crea
 - `new_date`: 新日期，可以是列名字符串（`str`）或 `datetime` 对象
 - `unit`: 返回单位，`"h"` 返回小时数，`"day"` 返回天数，默认为 `"h"`
 - `decimal_places`: 保留的小数位数，默认为 1
+- `nat`: 当日期为 NaT 时的填充值，默认为 `None` 表示不特殊处理
