@@ -65,7 +65,7 @@ from funcguard.time_utils import get_now
 df = cal_date_diff(df, target_column='duration', old_date_column='start_time', new_date='end_time')
 
 # 计算天数差，保留 2 位小数
-df = cal_date_diff(df, target_column='days_diff', old_date_column='create_time', new_date='update_time', unit='day', decimal_places=2)
+df = cal_date_diff(df, target_column='days_diff', old_date_column='create_time', new_date='update_time', unit='d', decimal_places=2)
 
 # 使用 datetime 对象作为新日期（例如计算到当前时间的差值）
 df = cal_date_diff(df, target_column='hours_since_create', old_date_column='create_time', new_date=get_now())
@@ -79,6 +79,6 @@ df = cal_date_diff(df, target_column='duration', old_date_column='start_time', n
 - `target_column`: 要填充计算结果的列名
 - `old_date_column`: 原始日期列名
 - `new_date`: 新日期，可以是列名字符串（`str`）或 `datetime` 对象
-- `unit`: 返回单位，`"h"` 返回小时数，`"day"` 返回天数，默认为 `"h"`
+- `unit`: 返回单位，`"h"` 返回小时数，`"d"` 返回天数，默认为 `"h"`
 - `decimal_places`: 保留的小数位数，默认为 1
 - `nat`: 当日期为 NaT 时的填充值，默认为 `None` 表示不特殊处理

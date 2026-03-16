@@ -114,7 +114,7 @@ def cal_date_diff(
     - target_column (str)：要填充计算结果的列名。
     - old_date_column (str)：原始日期列名。
     - new_date (str | datetime)：新日期，可以是列名字符串或datetime对象。
-    - unit (str, optional)：返回单位，"h" 返回小时数，"day" 返回天数，默认为"h"。
+    - unit (str, optional)：返回单位，"h" 返回小时数，"d" 返回天数，默认为"h"。
     - decimal_places (int, optional)：保留的小数位数，默认为1。
     - nat (int, optional)：当日期为NaT时的填充值，默认为None表示不特殊处理。
 
@@ -148,10 +148,10 @@ def cal_date_diff(
 
     if unit == "h":
         result = round(diff_seconds / 3600, decimal_places)
-    elif unit == "day":
+    elif unit == "d":
         result = round(diff_seconds / 86400, decimal_places)
     else:
-        raise ValueError("unit must be 'h' or 'day'")
+        raise ValueError("unit must be 'h' or 'd'")
 
     # 如果指定了 nat，将 NaT 对应的结果替换为 nat
     if nat is not None:
