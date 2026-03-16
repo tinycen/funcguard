@@ -17,6 +17,7 @@ from .pd_utils import (
     # 数据类型转换类
     convert_columns as pd_convert_columns,
     convert_decimal as pd_convert_decimal,
+    convert_numeric_series as pd_convert_numeric_series,
     convert_str_datetime as pd_convert_str_datetime,
     convert_datetime_str as pd_convert_datetime_str,
 
@@ -74,17 +75,19 @@ __all__ = [
     "is_valid_ip",
     "get_ip_info",
 
-    # pandas 数据处理工具
+    # pandas 数据填充类
     "pd_fill_na",
+    "pd_fill_nat",
     "pd_round_columns",
+    # 数据类型转换类
     "pd_cal_date_diff",
     "pd_convert_columns",
     "pd_convert_decimal",
+    "pd_convert_numeric_series",
     "pd_convert_str_datetime",
     "pd_convert_datetime_str",
     "pd_load_json",
-    "pd_fill_nat",
-
+    
     # 数据筛选类
     "pd_filter",
 
