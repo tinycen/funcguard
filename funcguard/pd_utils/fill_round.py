@@ -19,6 +19,7 @@ def fill_na(
     - columns (List[str] or Dict[str, Any])：
         * 如果为List[str]，则使用fill_value填充指定列的空值
         * 如果为Dict[str, Any]，则使用字典中对应列的value填充空值（键为列名，值为填充值）
+        * 如果为List[str]且为空列表，则对所有列应用fill_value填充
     - fill_value (Any, optional)：当columns为列表时的默认填充值，默认为空字符串。
     - decimal_places (int, optional)：当进行数值转换时保留的小数位数，默认为None表示不限制
 
@@ -28,12 +29,20 @@ def fill_na(
     _is_numeric_fill = isinstance(fill_value, (int, float))
 
     if isinstance(columns, list):
-        for column in columns:
+        if len(columns) == 0:
             if _is_numeric_fill:
-                df[column] = df[column].astype(float).fillna(fill_value)
-                df[column] = convert_numeric_series(df[column], decimal_places)
+                df = df.fillna(fill_value)
+                for col in df.columns:
+                    df[col] = convert_numeric_series(df[col], decimal_places)
             else:
-                df[column] = df[column].fillna(fill_value)
+                df = df.fillna(fill_value)
+        else:
+            for column in columns:
+                if _is_numeric_fill:
+                    df[column] = df[column].astype(float).fillna(fill_value)
+                    df[column] = convert_numeric_series(df[column], decimal_places)
+                else:
+                    df[column] = df[column].fillna(fill_value)
     elif isinstance(columns, dict):
         for column, value in columns.items():
             if isinstance(value, (int, float)):

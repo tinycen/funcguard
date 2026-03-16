@@ -17,11 +17,15 @@ df = fill_na(df, ['name', 'age'], '默认值')
 
 # 数值填充并指定小数位数
 df = fill_na(df, ['price', 'discount'], 0.0, decimal_places=2)
+
+# 空列表填充所有列
+df = fill_na(df, [], '默认值')  # 对所有列填充 '默认值'
+df = fill_na(df, [], 0.0, decimal_places=2)  # 对所有列填充 0.0 并保留 2 位小数
 ```
 
 **参数说明：**
 - `df`: 输入的 DataFrame
-- `columns`: 列名列表或字典（键为列名，值为填充值）
+- `columns`: 列名列表或字典（键为列名，值为填充值），传入空列表时对所有列应用填充
 - `fill_value`: 统一填充值，默认为空字符串
 - `decimal_places`: 数值转换时保留的小数位数，默认为 None 表示不限制
 
