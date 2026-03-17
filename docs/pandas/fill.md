@@ -4,7 +4,7 @@ FuncGuard 提供数据填充功能，用于处理 DataFrame 中的空值。
 
 ## fill_na - 空值填充
 
-替换 DataFrame 中指定列的空值为指定值。支持数值类型自动转换和精度控制。
+替换 DataFrame 中指定列的空值为指定值。支持数值类型自动转换和精度控制，对日期时间类型有特殊处理避免转换错误。
 
 ```python
 from funcguard.pd_utils import fill_na
@@ -29,56 +29,25 @@ df = fill_na(df, [], 0.0, decimal_places=2)  # 对所有列填充 0.0 并保留 
 - `fill_value`: 统一填充值，默认为空字符串
 - `decimal_places`: 数值转换时保留的小数位数，默认为 None 表示不限制
 
-## fill_nat - NaT 时间填充
+## round_columns - 四舍五入
 
-将指定列的 NaT（Not a Time）值替换为指定值，特别适用于时间类型的空值处理。支持datetime和timedelta类型，默认填充为空字符串。
+对 DataFrame 中指定列进行四舍五入操作，支持指定保留的小数位数。
 
 ```python
-from funcguard.pd_utils import fill_nat
+from funcguard.pd_utils import round_columns
 
-# 单个填充 时间列的 NaT 值为空字符串（默认行为）
-df = fill_nat(df, 'create_time')
+# 对单列进行四舍五入，保留整数
+df = round_columns(df, ['price'], 0)
 
-# 批量填充 多个时间列的 NaT 值为空字符串
-df = fill_nat(df, ['create_time', 'update_time'])
-
-# 填充时间列的 NaT 值为指定日期字符串
-df = fill_nat(df, 'log_time', fill_value='2000-01-01 00:00:00')
-df = fill_nat(df, ['create_time', 'update_time'], fill_value='1970-01-01')
-
+# 对多列进行四舍五入，保留 2 位小数
+df = round_columns(df, ['price', 'discount'], 2)
 ```
 
 **参数说明：**
 - `df`: 输入的 DataFrame
-- `columns`: 列名列表或字符串
-- `fill_value`: 填充值，默认为空字符串
+- `columns`: 要进行四舍五入的列名列表
+- `decimal_places`: 保留的小数位数，默认为 0
 
-## cal_date_diff - 日期差值计算填充
-
-计算 DataFrame 中两列日期的时间差（或一列日期与指定日期时间的差值），并将结果填充到指定列。支持自动将字符串类型日期转换为 datetime 类型。
-
-```python
-from funcguard.pd_utils import cal_date_diff
-from funcguard.time_utils import get_now
-
-# 计算两列日期的小时差，结果填充到 duration 列
-df = cal_date_diff(df, target_column='duration', old_date_column='start_time', new_date='end_time')
-
-# 计算天数差，保留 2 位小数
-df = cal_date_diff(df, target_column='days_diff', old_date_column='create_time', new_date='update_time', unit='d', decimal_places=2)
-
-# 使用 datetime 对象作为新日期（例如计算到当前时间的差值）
-df = cal_date_diff(df, target_column='hours_since_create', old_date_column='create_time', new_date=get_now())
-
-# 当日期存在空值时，使用指定值填充计算结果
-df = cal_date_diff(df, target_column='duration', old_date_column='start_time', new_date='end_time', nat=-1)
-```
-
-**参数说明：**
-- `df`: 输入的 DataFrame
-- `target_column`: 要填充计算结果的列名
-- `old_date_column`: 原始日期列名
-- `new_date`: 新日期，可以是列名字符串（`str`）或 `datetime` 对象
-- `unit`: 返回单位，`"h"` 返回小时数，`"d"` 返回天数，默认为 `"h"`
-- `decimal_places`: 保留的小数位数，默认为 1
-- `nat`: 当日期为 NaT 时的填充值，默认为 `None` 表示不特殊处理
+**注意事项：**
+- 只有数值类型的列才能进行四舍五入操作
+- 非数值类型的列会抛出 TypeError 异常
