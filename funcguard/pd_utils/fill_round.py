@@ -45,11 +45,22 @@ def fill_na(
                     df[column] = df[column].fillna(fill_value)
     elif isinstance(columns, dict):
         for column, value in columns.items():
-            if isinstance(value, (int, float)):
-                df[column] = df[column].astype(float).fillna(value)
-                df[column] = convert_numeric_series(df[column], decimal_places)
-            else:
-                df[column] = df[column].fillna(value)
+            if column not in df.columns:
+                continue
+            try:
+                if isinstance(value, (int, float)):
+                    # 检查列是否为日期时间类型，避免直接转float报错
+                    if is_datetime64_any_dtype(df[column].dtype) or is_timedelta64_dtype(df[column].dtype):
+                        # 日期类型不能直接填充数值，直接使用 fillna() 填充而不转换为 float
+                        df[column] = df[column].fillna(value)
+                    else:
+                        df[column] = df[column].astype(float).fillna(value)
+                        df[column] = convert_numeric_series(df[column], decimal_places)
+                else:
+                    df[column] = df[column].fillna(value)
+            except Exception as e:
+                column_dtype = df[column].dtype
+                raise TypeError(f"处理列 '{column}' (类型: {column_dtype}) 时出错: {e}") from e
     return df
 
 
@@ -152,6 +163,12 @@ def cal_date_diff(
         result = round(diff_seconds / 86400, decimal_places)
     else:
         raise ValueError("unit must be 'h' or 'd'")
+    
+    # 确保结果是数值类型，而不是 Timedelta 类型
+    if decimal_places > 0:
+        result = result.astype(float)
+    else:
+        result = result.astype(int)
 
     # 如果指定了 nat，将 NaT 对应的结果替换为 nat
     if nat is not None:

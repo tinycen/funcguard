@@ -9,7 +9,7 @@ except FileNotFoundError:
 
 setup(
     name='funcguard',
-    version='0.2.30',
+    version='0.2.31',
     packages=find_packages(),
     install_requires=[
         'requests',
