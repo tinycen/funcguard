@@ -111,7 +111,7 @@ def fill_nat(
 def cal_date_diff(
     df: pd.DataFrame,
     target_column: str,
-    old_date_column: str,
+    old_date: Union[str, datetime],
     new_date: Union[str, datetime],
     unit: str = "h",
     decimal_places: int = 1,
@@ -123,7 +123,7 @@ def cal_date_diff(
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
     - target_column (str)：要填充计算结果的列名。
-    - old_date_column (str)：原始日期列名。
+    - old_date (str | datetime)：原始日期，可以是列名字符串或datetime对象。
     - new_date (str | datetime)：新日期，可以是列名字符串或datetime对象。
     - unit (str, optional)：返回单位，"h" 返回小时数，"d" 返回天数，默认为"h"。
     - decimal_places (int, optional)：保留的小数位数，默认为1。
@@ -132,15 +132,19 @@ def cal_date_diff(
     返回：
     - pd.DataFrame：填充计算结果后的DataFrame。
     """
-    if old_date_column not in df.columns:
-        raise ValueError(f"列 '{old_date_column}' 不存在于DataFrame中")
-
-    old_date = df[old_date_column]
-
-    # 如果日期列为字符串类型（object 或 string），则转换为 datetime 类型
-    # errors="coerce" 表示将无法解析的日期字符串转换为 NaT（Not a Time），而不是抛出错误
-    if old_date.dtype == object or str(old_date.dtype) == "string":
-        old_date = pd.to_datetime(old_date, errors="coerce")
+    # 判断 old_date 是列名字符串还是 datetime 对象
+    if isinstance(old_date, str):
+        if old_date not in df.columns:
+            raise ValueError(f"列 '{old_date}' 不存在于DataFrame中")
+        old_date_values = df[old_date]
+        # 如果日期列为字符串类型（object 或 string），则转换为 datetime 类型
+        # errors="coerce" 表示将无法解析的日期字符串转换为 NaT（Not a Time），而不是抛出错误
+        if old_date_values.dtype == object or str(old_date_values.dtype) == "string":
+            old_date_values = pd.to_datetime(old_date_values, errors="coerce")
+    elif isinstance(old_date, datetime):
+        old_date_values = old_date
+    else:
+        raise TypeError("old_date 必须是字符串（列名）或 datetime 对象")
 
     # 判断 new_date 是列名字符串还是 datetime 对象
     if isinstance(new_date, str):
@@ -155,22 +159,28 @@ def cal_date_diff(
     else:
         raise TypeError("new_date 必须是字符串（列名）或 datetime 对象")
 
-    # 检测 old_date 或 new_date_values 中的 NaT
-    if isinstance(new_date_values, pd.Series):
-        nat_mask = old_date.isna() | new_date_values.isna()
+    # 检测 old_date_values 或 new_date_values 中的 NaT
+    if isinstance(old_date_values, pd.Series) and isinstance(new_date_values, pd.Series):
+        nat_mask = old_date_values.isna() | new_date_values.isna()
+    elif isinstance(old_date_values, pd.Series):
+        nat_mask = old_date_values.isna()
+    elif isinstance(new_date_values, pd.Series):
+        nat_mask = new_date_values.isna()
     else:
-        nat_mask = old_date.isna()
+        nat_mask = pd.Series([False] * len(df), index=df.index)
     
     has_nat = nat_mask.any()
     
     # 如果存在 NaT 且 nat 参数为 None，报错提示
     if has_nat and nat is None:
+        old_date_name = old_date if isinstance(old_date, str) else "old_date"
+        new_date_name = new_date if isinstance(new_date, str) else "new_date"
         raise ValueError(
-            f"列 '{old_date_column}' 或 '{new_date}' 中存在空值(NaT)，"
+            f"列 '{old_date_name}' 或 '{new_date_name}' 中存在空值(NaT)，"
             f"但 nat 参数未指定。请设置 nat 参数来指定空值的填充值。"
         )
 
-    diff_seconds = (new_date_values - old_date).dt.total_seconds()  # pyright: ignore[reportAttributeAccessIssue]
+    diff_seconds = (new_date_values - old_date_values).dt.total_seconds()  # pyright: ignore[reportAttributeAccessIssue]
 
     if unit == "h":
         result = round(diff_seconds / 3600, decimal_places)
