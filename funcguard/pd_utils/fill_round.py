@@ -155,6 +155,21 @@ def cal_date_diff(
     else:
         raise TypeError("new_date 必须是字符串（列名）或 datetime 对象")
 
+    # 检测 old_date 或 new_date_values 中的 NaT
+    if isinstance(new_date_values, pd.Series):
+        nat_mask = old_date.isna() | new_date_values.isna()
+    else:
+        nat_mask = old_date.isna()
+    
+    has_nat = nat_mask.any()
+    
+    # 如果存在 NaT 且 nat 参数为 None，报错提示
+    if has_nat and nat is None:
+        raise ValueError(
+            f"列 '{old_date_column}' 或 '{new_date}' 中存在空值(NaT)，"
+            f"但 nat 参数未指定。请设置 nat 参数来指定空值的填充值。"
+        )
+
     diff_seconds = (new_date_values - old_date).dt.total_seconds()  # pyright: ignore[reportAttributeAccessIssue]
 
     if unit == "h":
@@ -164,20 +179,16 @@ def cal_date_diff(
     else:
         raise ValueError("unit must be 'h' or 'd'")
     
+    # 如果指定了 nat，将 NaT 对应的结果替换为 nat
+    if nat is not None:
+        result = result.where(~nat_mask, nat)
+    
     # 确保结果是数值类型，而不是 Timedelta 类型
     if decimal_places > 0:
         result = result.astype(float)
     else:
+        # 转换为 int 前，确保没有 NaN 值（前面已处理）
         result = result.astype(int)
-
-    # 如果指定了 nat，将 NaT 对应的结果替换为 nat
-    if nat is not None:
-        # 检测 old_date 或 new_date_values 中的 NaT
-        if isinstance(new_date_values, pd.Series):
-            nat_mask = old_date.isna() | new_date_values.isna()
-        else:
-            nat_mask = old_date.isna()
-        result = result.where(~nat_mask, nat)
 
     df[target_column] = result
 
