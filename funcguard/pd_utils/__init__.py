@@ -1,5 +1,6 @@
 import pandas as pd
-from .fill_round import fill_na, fill_nat, round_columns, cal_date_diff
+from .fill_round import fill_na, round_columns
+from .date_utils import fill_nat, cal_date_diff
 from .convert_utils import convert_columns, convert_decimal, convert_numeric_series, load_json, convert_str_datetime, convert_datetime_str
 from .statistics import pd_build_mask, pd_build_masks, pd_combine_masks, pd_count, DataFrameStatistics
 from .filter import pd_filter
