@@ -1,5 +1,5 @@
 from .core import timeout_handler, retry_function
-from .tools import send_request, encode_basic_auth
+from .tools import send_request, encode_basic_auth, md5_hash
 from .time_utils import (
     time_log, time_diff, time_monitor, time_wait, color_logger,
     get_now, generate_timestamp, cal_date_diff
@@ -49,6 +49,7 @@ __all__ = [
     "retry_function",
     "send_request",
     "encode_basic_auth",
+    "md5_hash",
     
     # 时间工具
     "time_log",
