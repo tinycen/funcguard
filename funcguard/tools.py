@@ -7,17 +7,17 @@ from .core import retry_function
 from .data_models import RequestLog
 
 
-def generate_md5_hash(*texts: str, encoding: str = "utf-8") -> str:
+def md5_hash(*texts: str, encoding: str = "utf-8") -> str:
     """
     生成字符串的 MD5 哈希值，支持多个文本参数自动拼接
 
     :param texts: 需要生成哈希的字符串，可以传入多个参数，会自动拼接
     :param encoding: 字符串编码，默认为 utf-8
     :return: MD5 哈希值的十六进制字符串
-    
+
     示例:
-        generate_md5_hash(appid, query, salt, appkey)
-        generate_md5_hash("hello", "world")  # 相当于对 "helloworld" 生成MD5
+        md5_hash(appid, query, salt, appkey)
+        md5_hash("hello", "world")  # 相当于对 "helloworld" 生成MD5
     """
     combined_text = "".join(texts)
     return hashlib.md5(combined_text.encode(encoding)).hexdigest()
