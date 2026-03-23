@@ -1,7 +1,7 @@
 import pandas as pd
-from typing import  Any, Dict, List, Tuple, Union, Optional
+from typing import  Any, Dict, List, Tuple, Union, Optional, Mapping
 from .mask_utils import build_single_mask as _original_build_single_mask, build_base_mask as _original_build_base_mask, combine_masks
-from .count_utils import count as _original_count
+from .count_utils import count as _original_count, value_counts as _original_value_counts
 
 
 
@@ -81,17 +81,17 @@ class DataFrameStatistics:
 
 
     def count(self, conditions: Union[Tuple, List[Tuple]], logic: str = "and",
-             true_mask: Optional[pd.Series] = None, 
+             true_mask: Optional[pd.Series] = None,
              false_mask: Optional[pd.Series] = None) -> int:
         """
         统计DataFrame中符合条件的非空值数量，自动使用内部掩码参数
-        
+
         参数：
         - conditions (Union[Tuple, List[Tuple]])：符合条件的表达式
         - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
         - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
         - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
-        
+
         返回：
         - int：符合条件的数量
         """
@@ -101,6 +101,57 @@ class DataFrameStatistics:
         if false_mask is None:
             false_mask = self._false_mask
         return _original_count(self._df, conditions, logic, true_mask, false_mask)
+
+
+    def value_counts(
+        self,
+        column: str,
+        mode: str = "count",
+        sort: Optional[str] = None,
+        dropna: bool = True,
+        conditions: Optional[Union[Tuple, List[Tuple]]] = None,
+        logic: str = "and",
+        true_mask: Optional[pd.Series] = None,
+        false_mask: Optional[pd.Series] = None
+    ) -> Mapping[Any, Union[int, float]]:
+        """
+        统计指定列中不同值的计数数据，自动使用内部掩码参数
+
+        参数：
+        - column (str)：要统计的列名
+        - mode (str)：统计模式，"count" 表示计数，"percent" 表示百分比，默认为 "count"
+        - sort (Optional[str])：排序方式，"asc" 表示升序，"desc" 表示降序，
+            默认为None表示不排序
+        - dropna (bool)：是否排除空值，默认为True
+        - conditions (Optional[Union[Tuple, List[Tuple]]])：可选的过滤条件
+        - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
+        - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
+        - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
+
+        返回：
+        - Mapping[Any, Union[int, float]]：以值为键，计数/百分比为值的字典
+
+        示例：
+            >>> stats.value_counts("status")
+            {'active': 150, 'inactive': 50, 'pending': 20}
+            >>> stats.value_counts("status", mode="percent")
+            {'active': 0.6818, 'inactive': 0.2273, 'pending': 0.0909}
+            >>> stats.value_counts("status", sort="desc")
+            {'active': 150, 'inactive': 50, 'pending': 20}
+            >>> stats.value_counts("status", sort="asc")
+            {'pending': 20, 'inactive': 50, 'active': 150}
+            >>> stats.value_counts("status", conditions=[("age", ">", 18)])
+            {'active': 120, 'inactive': 30}
+        """
+        # 如果没有提供外部掩码，使用内部缓存的掩码
+        if true_mask is None:
+            true_mask = self._true_mask
+        if false_mask is None:
+            false_mask = self._false_mask
+        return _original_value_counts(
+            self._df, column, mode, sort, dropna,
+            conditions, logic, true_mask, false_mask
+        )
 
 
     def dataframe_info(self) -> Dict[str, Any]:

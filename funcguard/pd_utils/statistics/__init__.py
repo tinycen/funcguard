@@ -1,5 +1,5 @@
 from .df_statistics import DataFrameStatistics
-from .count_utils import count as pd_count
+from .count_utils import count as pd_count, value_counts as pd_value_counts
 from .mask_utils import (
     build_single_mask as pd_build_mask,
     build_base_mask as pd_build_masks,
@@ -13,6 +13,7 @@ __all__ = [
     "pd_combine_masks",
     # 统计函数
     "pd_count",
+    "pd_value_counts",
     # 统计分析类
     "DataFrameStatistics",
 ]
