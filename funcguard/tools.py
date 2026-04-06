@@ -51,7 +51,7 @@ def encode_basic_auth(username, password):
     return auth_value
 
 
-def do_curl_cffi_request(
+def curl_cffi_request(
     method: HttpMethod,
     url: str,
     req_kwargs: Dict[str, Any],
@@ -178,7 +178,7 @@ def send_request(
 
     # ---------- 403 → curl_cffi 兜底 ----------
     if curl_fallback and response.status_code == 403:
-        response = do_curl_cffi_request(
+        response = curl_cffi_request(
             method, url, req_kwargs, curl_fallback_impersonate, auto_retry
         )
 
