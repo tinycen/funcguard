@@ -57,41 +57,41 @@ def send_request(
                      {"task_name": "任务名称", "max_retries": 最大重试次数, "execute_timeout": 执行超时时间}
     :return: 请求结果
     """
-    if data is None:
-        payload = {}
-    else:
-        if data and isinstance(data, dict):
+    payload = None
+
+    if data is not None:
+        if isinstance(data, dict) or isinstance(data, list):
             payload = json.dumps(data, ensure_ascii=False)
             if headers is None:
                 headers = {"Content-Type": "application/json"}
             elif "Content-Type" not in headers:
                 headers["Content-Type"] = "application/json"
-        elif data and isinstance(data, list):
-            payload = json.dumps(data, ensure_ascii=False)
         else:
             payload = data
 
     if headers is None:
         headers = {}
 
+    req_kwargs = {"headers": headers, "timeout": timeout}
+
+    # POST/PUT/PATCH 等需要 body 的方法，始终传递 data（即使为空）
+    # GET/DELETE/HEAD 等无 body 方法，仅在有实际内容时传递
+    if method.upper() in ("POST", "PUT", "PATCH"):
+        req_kwargs["data"] = payload if payload is not None else {}
+    elif payload is not None:
+        req_kwargs["data"] = payload
+
     if auto_retry is None:
-        response = requests.request(
-            method, url, headers=headers, data=payload, timeout=timeout
-        )
+        response = requests.request(method, url, **req_kwargs)
     else:
         max_retries = auto_retry.get("max_retries", 5)
         execute_timeout = auto_retry.get("execute_timeout", 90)
         task_name = auto_retry.get("task_name", "")
         response = retry_function(
             requests.request,
-            max_retries,
-            execute_timeout,
-            task_name,
-            method,
-            url,
-            headers=headers,
-            data=payload,
-            timeout=timeout,
+            max_retries, execute_timeout, task_name,
+            method, url,
+            **req_kwargs,
         )
 
     if response is None:
