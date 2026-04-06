@@ -101,7 +101,6 @@ def curl_cffi_request(
     )
 
 
-
 # 发起请求
 def send_request(
     method: HttpMethod,
@@ -209,3 +208,59 @@ def send_request(
     else:
         result = response.text
     return result
+
+
+# 检查URL是否有效
+def check_url_valid(
+    url: str,
+    headers: Optional[Dict[str, str]] = None,
+    max_retries: int = 3,
+    curl_fallback: bool = False,
+    curl_fallback_impersonate: str = _DEFAULT_IMPERSONATE,
+) -> bool:
+    auto_retry = {"max_retries": max_retries, "task_name": "check_url_valid"}
+
+    try:
+        response = send_request(
+            method="HEAD",
+            url=url,
+            headers=headers,
+            return_type="response",
+            auto_retry=auto_retry,
+            curl_fallback=curl_fallback,
+            curl_fallback_impersonate=curl_fallback_impersonate,
+        )
+    except Exception:
+        response = None
+
+    # HEAD 成功且状态码正常，直接返回
+    if response is not None and response.status_code == 200: # type: ignore
+        return True
+
+    # HEAD 失败时，如果启用了 curl_fallback，尝试使用 curl_cffi 发送 HEAD
+    if curl_fallback:
+        try:
+            req_kwargs = {"headers": headers or {}, "timeout": 60}
+            response = curl_cffi_request(
+                "HEAD", url, req_kwargs, curl_fallback_impersonate, auto_retry
+            )
+            if response.status_code == 200: # type: ignore
+                return True
+        except Exception:
+            pass
+
+    # HEAD 失败（异常/405/403等）时降级到 GET
+    try:
+        req_kwargs = {"headers": headers or {}, "timeout": 60, "stream": True}
+        response = send_request(
+            method="GET",
+            url=url,
+            headers=headers,
+            return_type="response",
+            auto_retry=auto_retry,
+            curl_fallback=curl_fallback,
+            curl_fallback_impersonate=curl_fallback_impersonate,
+        )
+        return response.status_code == 200  # type: ignore
+    except Exception:
+        return False

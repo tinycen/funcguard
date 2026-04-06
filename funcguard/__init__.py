@@ -1,5 +1,5 @@
 from .core import timeout_handler, retry_function
-from .tools import send_request, curl_cffi_request, encode_basic_auth, md5_hash
+from .tools import send_request, curl_cffi_request, check_url_valid, encode_basic_auth, md5_hash
 from .time_utils import (
     time_log, time_diff, time_monitor, time_wait, color_logger,
     get_now, generate_timestamp, cal_date_diff
@@ -53,6 +53,7 @@ __all__ = [
     "encode_basic_auth",
     "send_request",
     "curl_cffi_request",
+    "check_url_valid",
 
     
     # 时间和日志工具
