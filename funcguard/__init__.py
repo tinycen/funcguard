@@ -1,5 +1,5 @@
 from .core import timeout_handler, retry_function
-from .tools import send_request, encode_basic_auth, md5_hash
+from .tools import send_request, curl_cffi_request, encode_basic_auth, md5_hash
 from .time_utils import (
     time_log, time_diff, time_monitor, time_wait, color_logger,
     get_now, generate_timestamp, cal_date_diff
@@ -47,9 +47,13 @@ __all__ = [
     # 核心功能
     "timeout_handler",
     "retry_function",
-    "send_request",
-    "encode_basic_auth",
+
+    # 网络请求工具
     "md5_hash",
+    "encode_basic_auth",
+    "send_request",
+    "curl_cffi_request",
+
     
     # 时间工具
     "time_log",
@@ -80,6 +84,7 @@ __all__ = [
     "pd_fill_na",
     "pd_fill_nat",
     "pd_round_columns",
+    
     # 数据类型转换类
     "pd_cal_date_diff",
     "pd_convert_columns",
