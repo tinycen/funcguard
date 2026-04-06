@@ -56,11 +56,13 @@ def do_curl_cffi_request(
     url: str,
     req_kwargs: Dict[str, Any],
     impersonate: str,
+    auto_retry: Optional[Dict[str, Any]] = None,
 ) -> Any:
     """
     使用 curl_cffi 发起请求的内部封装。
 
     :param impersonate: curl_cffi 的浏览器指纹标识
+    :param auto_retry: 自动重试配置，格式同 send_request 的 auto_retry
     :raises ImportError: 如果未安装 curl_cffi
     :raises ValueError: 如果 impersonate 标识不在支持列表中
     """
@@ -84,7 +86,19 @@ def do_curl_cffi_request(
         headers["Accept"] = "*/*"
 
     cffi_kwargs["headers"] = headers
-    return cffi_requests.request(method, url, **cffi_kwargs)
+
+    if auto_retry is None:
+        return cffi_requests.request(method, url, **cffi_kwargs)
+
+    max_retries = auto_retry.get("max_retries", 5)
+    execute_timeout = auto_retry.get("execute_timeout", 90)
+    task_name = auto_retry.get("task_name", "")
+    return retry_function(
+        cffi_requests.request,
+        max_retries, execute_timeout, task_name,
+        method, url,
+        **cffi_kwargs,
+    )
 
 
 
@@ -118,6 +132,7 @@ def send_request(
     :param curl_fallback_impersonate: curl_cffi 使用的浏览器指纹标识，默认 "chrome124"。
                           需与对应浏览器 User-Agent 匹配（未自定义 UA 时由内部自动注入）。
                           支持的值见 _IMPERSONATE_UA_MAP。
+                          若 send_request 配置了 auto_retry，curl_cffi 兜底会继承同样的重试参数。
     :return: 请求结果
     """
     payload = None
@@ -164,7 +179,7 @@ def send_request(
     # ---------- 403 → curl_cffi 兜底 ----------
     if curl_fallback and response.status_code == 403:
         response = do_curl_cffi_request(
-            method, url, req_kwargs, curl_fallback_impersonate
+            method, url, req_kwargs, curl_fallback_impersonate, auto_retry
         )
 
     if response is None:
