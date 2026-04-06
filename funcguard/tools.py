@@ -2,10 +2,28 @@ import json
 import base64
 import hashlib
 import requests
-from typing import Optional, Dict, Any, Union
+from curl_cffi import requests as cffi_requests
+
+from typing import Optional, Dict, Any, Union, Literal
 from .core import retry_function
 from .data_models import RequestLog
 
+# HTTP 方法类型别名
+HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "PATCH"]
+
+
+# impersonate 名称 → 对应真实浏览器 User-Agent 映射
+# 只维护 curl_cffi 支持的主流标识
+_IMPERSONATE_UA_MAP: Dict[str, str] = {
+    "chrome123": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "chrome124": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "safari15_5": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15",
+    "safari17_0": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    "firefox110": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:110.0) Gecko/20100101 Firefox/110.0",
+}
+
+# 默认使用的 impersonate 标识
+_DEFAULT_IMPERSONATE = "chrome124"
 
 def md5_hash(*texts: str, encoding: str = "utf-8") -> str:
     """
@@ -33,9 +51,46 @@ def encode_basic_auth(username, password):
     return auth_value
 
 
+def do_curl_cffi_request(
+    method: HttpMethod,
+    url: str,
+    req_kwargs: Dict[str, Any],
+    impersonate: str,
+) -> Any:
+    """
+    使用 curl_cffi 发起请求的内部封装。
+
+    :param impersonate: curl_cffi 的浏览器指纹标识
+    :raises ImportError: 如果未安装 curl_cffi
+    :raises ValueError: 如果 impersonate 标识不在支持列表中
+    """
+
+    if impersonate not in _IMPERSONATE_UA_MAP:
+        raise ValueError(
+            f"不支持的 impersonate 值: '{impersonate}'，"
+            f"可选值为: {list(_IMPERSONATE_UA_MAP.keys())}"
+        )
+
+    cffi_kwargs = dict(req_kwargs)
+    cffi_kwargs["impersonate"] = impersonate
+
+    # 注入匹配的 User-Agent（调用方未显式设置时才注入，避免覆盖业务 UA）
+    headers = dict(cffi_kwargs.get("headers") or {})
+    existing_keys_lower = {k.lower() for k in headers}
+    if "user-agent" not in existing_keys_lower:
+        headers["User-Agent"] = _IMPERSONATE_UA_MAP[impersonate]
+
+    if "accept" not in existing_keys_lower:
+        headers["Accept"] = "*/*"
+
+    cffi_kwargs["headers"] = headers
+    return cffi_requests.request(method, url, **cffi_kwargs)
+
+
+
 # 发起请求
 def send_request(
-    method: str,
+    method: HttpMethod,
     url: str,
     headers: Optional[Dict[str, str]] = None,
     data: Optional[Any] = None,
@@ -43,6 +98,8 @@ def send_request(
     timeout: int = 60,
     auto_retry: Optional[Dict[str, Any]] = None,
     request_log: RequestLog = RequestLog(),
+    curl_fallback: bool = False,
+    curl_fallback_impersonate: str = _DEFAULT_IMPERSONATE,
 ) -> Union[Dict, str, requests.Response]:
     """
     发送HTTP请求的通用函数
@@ -55,6 +112,12 @@ def send_request(
     :param timeout: 请求超时时间
     :param auto_retry: 自动重试配置，格式为：
                      {"task_name": "任务名称", "max_retries": 最大重试次数, "execute_timeout": 执行超时时间}
+    :param request_log: 请求日志配置
+    :param curl_fallback: 是否启用 curl_cffi 兜底。开启后，当响应状态码为 403 时，
+                          自动改用 curl_cffi（含 TLS 指纹伪装）重新发起请求，默认 False。
+    :param curl_fallback_impersonate: curl_cffi 使用的浏览器指纹标识，默认 "chrome124"。
+                          需与对应浏览器 User-Agent 匹配（未自定义 UA 时由内部自动注入）。
+                          支持的值见 _IMPERSONATE_UA_MAP。
     :return: 请求结果
     """
     payload = None
@@ -81,6 +144,7 @@ def send_request(
     elif payload is not None:
         req_kwargs["data"] = payload
 
+    # ---------- 正常请求 ----------
     if auto_retry is None:
         response = requests.request(method, url, **req_kwargs)
     else:
@@ -97,6 +161,16 @@ def send_request(
     if response is None:
         raise ValueError("请求返回的响应为None")
 
+    # ---------- 403 → curl_cffi 兜底 ----------
+    if curl_fallback and response.status_code == 403:
+        response = do_curl_cffi_request(
+            method, url, req_kwargs, curl_fallback_impersonate
+        )
+
+    if response is None:
+        raise ValueError("curl_cffi 兜底请求返回的响应为None")
+
+    # ---------- 结果处理 ----------
     if return_type == "json":
         result = response.json()
         if request_log.save_path:
