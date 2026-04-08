@@ -97,6 +97,16 @@ response = send_request(
     timeout=30
 )
 print(response)
+
+# 流式传输请求（用于大文件下载）
+response = send_request(
+    method="GET",
+    url="https://api.example.com/largefile",
+    stream=True  # 启用流式传输，通过 iter_content() 分块读取
+)
+for chunk in response.iter_content(chunk_size=8192):
+    # 处理数据块
+    pass
 ```
 
 #### 自动重试

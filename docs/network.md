@@ -31,6 +31,7 @@ def send_request(
     request_log: RequestLog = RequestLog(),
     curl_fallback: bool = False,
     curl_fallback_impersonate: str = "chrome124",
+    stream: bool = False,
 ) -> Union[Dict, str, requests.Response]
 ```
 
@@ -48,6 +49,7 @@ def send_request(
 | `request_log` | `RequestLog` | `RequestLog()` | 请求日志配置，用于保存请求和响应数据 |
 | `curl_fallback` | `bool` | `False` | 是否启用 curl_cffi 兜底。当响应状态码为 403 时，自动改用 curl_cffi 重新发起请求 |
 | `curl_fallback_impersonate` | `str` | `"chrome124"` | curl_cffi 使用的浏览器指纹标识，支持的值见 [curl_cffi_request](#curl_cffi_request) |
+| `stream` | `bool` | `False` | 是否使用流式传输。启用后响应内容不会立即下载，可通过 `iter_content()` 分块读取，适合大文件下载场景 |
 
 ### auto_retry 配置
 
@@ -107,6 +109,20 @@ response = send_request(
 )
 print(response.status_code)
 print(response.headers)
+```
+
+#### 流式传输请求（用于大文件下载）
+
+```python
+response = send_request(
+    method="GET",
+    url="https://api.example.com/largefile",
+    stream=True  # 启用流式传输
+)
+for chunk in response.iter_content(chunk_size=8192):
+    if chunk:
+        # 处理数据块
+        pass
 ```
 
 ### 自动重试示例

@@ -113,6 +113,7 @@ def send_request(
     request_log: RequestLog = RequestLog(),
     curl_fallback: bool = False,
     curl_fallback_impersonate: str = _DEFAULT_IMPERSONATE,
+    stream: bool = False,
 ) -> Union[Dict, str, requests.Response]:
     """
     发送HTTP请求的通用函数
@@ -132,6 +133,8 @@ def send_request(
                           需与对应浏览器 User-Agent 匹配（未自定义 UA 时由内部自动注入）。
                           支持的值见 _IMPERSONATE_UA_MAP。
                           若 send_request 配置了 auto_retry，curl_cffi 兜底会继承同样的重试参数。
+    :param stream: 是否使用流式传输，默认 False。启用后响应内容不会立即下载，
+                   可通过 iter_content() 分块读取，适合大文件下载场景。
     :return: 请求结果
     """
     payload = None
@@ -149,7 +152,7 @@ def send_request(
     if headers is None:
         headers = {}
 
-    req_kwargs = {"headers": headers, "timeout": timeout}
+    req_kwargs = {"headers": headers, "timeout": timeout, "stream": stream}
 
     # POST/PUT/PATCH 等需要 body 的方法，始终传递 data（即使为空）
     # GET/DELETE/HEAD 等无 body 方法，仅在有实际内容时传递
