@@ -2,6 +2,7 @@ import pandas as pd
 from typing import  Any, Dict, List, Tuple, Union, Optional, Mapping
 from .mask_utils import build_single_mask as _original_build_single_mask, build_base_mask as _original_build_base_mask, combine_masks
 from .count_utils import count as _original_count, value_counts as _original_value_counts
+from .agg_utils import group_agg as _original_group_agg
 
 
 
@@ -150,6 +151,54 @@ class DataFrameStatistics:
             false_mask = self._false_mask
         return _original_value_counts(
             self._df, column, mode, sort, dropna,
+            conditions, logic, true_mask, false_mask
+        )
+
+
+    def group_agg(
+        self,
+        group_col: str,
+        agg_col: str,
+        agg_func: str = "sum",
+        sort: Optional[str] = None,
+        conditions: Optional[Union[Tuple, List[Tuple]]] = None,
+        logic: str = "and",
+        true_mask: Optional[pd.Series] = None,
+        false_mask: Optional[pd.Series] = None
+    ) -> Dict[Any, Union[int, float]]:
+        """
+        按指定列分组，对另一列进行聚合统计，自动使用内部掩码参数
+
+        参数：
+        - group_col (str)：分组列名（如A列）
+        - agg_col (str)：聚合列名（如B列）
+        - agg_func (str)：聚合函数，支持 "sum"、"mean"、"max"、"min"、"count"、"median"、"std"、"var"，
+            默认为 "sum"
+        - sort (Optional[str])：排序方式，"asc" 表示升序，"desc" 表示降序，
+            默认为None表示按分组列的原始顺序
+        - conditions (Optional[Union[Tuple, List[Tuple]]])：可选的过滤条件
+        - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
+        - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
+        - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
+
+        返回：
+        - Dict[Any, Union[int, float]]：以分组值为键，聚合结果为值的字典
+
+        示例：
+            >>> stats.group_agg("category", "amount", "sum")
+            {'A': 1000, 'B': 2000, 'C': 1500}
+            >>> stats.group_agg("category", "amount", "mean")
+            {'A': 100.0, 'B': 200.0, 'C': 150.0}
+            >>> stats.group_agg("category", "amount", "sum", sort="desc")
+            {'B': 2000, 'C': 1500, 'A': 1000}
+        """
+        # 如果没有提供外部掩码，使用内部缓存的掩码
+        if true_mask is None:
+            true_mask = self._true_mask
+        if false_mask is None:
+            false_mask = self._false_mask
+        return _original_group_agg(
+            self._df, group_col, agg_col, agg_func, sort,
             conditions, logic, true_mask, false_mask
         )
 

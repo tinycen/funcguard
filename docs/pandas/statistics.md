@@ -25,6 +25,92 @@ count = stats.count([
 info = stats.dataframe_info()
 ```
 
+### count - 条件计数统计
+
+统计 DataFrame 中符合条件的非空值数量。
+
+```python
+from funcguard.pd_utils import DataFrameStatistics
+
+stats = DataFrameStatistics(df)
+
+# 基本用法：统计年龄大于 25 岁的记录数
+count = stats.count(('age', '>', 25))
+
+# 多条件统计（and 逻辑）
+count = stats.count([
+    ('age', '>', 25),
+    ('salary', '>', 5000)
+], logic='and')
+
+# 多条件统计（or 逻辑）
+count = stats.count([
+    ('department', '==', 'IT'),
+    ('department', '==', 'HR')
+], logic='or')
+```
+
+#### 参数说明
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `conditions` | `Union[Tuple, List[Tuple]]` | 必填 | 条件表达式或条件列表 |
+| `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
+
+### group_agg - 分组聚合统计
+
+按指定列分组，对另一列进行聚合统计（求和、平均值等）。
+
+```python
+from funcguard.pd_utils import DataFrameStatistics
+
+stats = DataFrameStatistics(df)
+
+# 基本用法：按 category 分组，对 amount 列求和
+result = stats.group_agg("category", "amount", "sum")
+# {'A': 1000, 'B': 2000, 'C': 1500}
+
+# 求平均值
+result = stats.group_agg("category", "amount", "mean")
+# {'A': 100.0, 'B': 200.0, 'C': 150.0}
+
+# 降序排序（值大的在前）
+result = stats.group_agg("category", "amount", "sum", sort="desc")
+# {'B': 2000, 'C': 1500, 'A': 1000}
+
+# 升序排序（值小的在前）
+result = stats.group_agg("category", "amount", "sum", sort="asc")
+# {'A': 1000, 'C': 1500, 'B': 2000}
+
+# 带条件过滤统计
+result = stats.group_agg("category", "amount", "sum", conditions=[("status", "==", "active")])
+# 只统计 status == active 的记录
+
+# 组合条件过滤
+result = stats.group_agg(
+    "category",
+    "amount",
+    "sum",
+    sort="desc",
+    conditions=[
+        ("status", "==", "active"),
+        ("region", "==", "north")
+    ],
+    logic="and"
+)
+```
+
+#### 参数说明
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `group_col` | `str` | 必填 | 分组列名 |
+| `agg_col` | `str` | 必填 | 聚合列名 |
+| `agg_func` | `str` | `"sum"` | 聚合函数：`"sum"` / `"mean"` / `"max"` / `"min"` / `"count"` / `"median"` / `"std"` / `"var"` |
+| `sort` | `Optional[str]` | `None` | 排序方式：`"asc"` 升序 / `"desc"` 降序 / `None` 不排序 |
+| `conditions` | `Optional[list]` | `None` | 可选的过滤条件 |
+| `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
+
 ### value_counts - 不同值计数统计
 
 统计指定列中不同值的计数数据，支持计数模式和百分比模式。

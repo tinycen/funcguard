@@ -30,6 +30,8 @@ from .pd_utils import (
     pd_build_masks,
     pd_combine_masks,
     pd_count,
+    pd_value_counts,
+    pd_group_agg,
     DataFrameStatistics,
 
 )
@@ -101,6 +103,8 @@ __all__ = [
     "pd_build_masks",
     "pd_combine_masks",
     "pd_count",
+    "pd_value_counts",
+    "pd_group_agg",
     "DataFrameStatistics",
     
     # 计算工具
