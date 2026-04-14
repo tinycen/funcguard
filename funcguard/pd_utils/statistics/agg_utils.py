@@ -22,7 +22,7 @@ def group_agg(
     true_mask: Optional[pd.Series] = None,
     false_mask: Optional[pd.Series] = None,
     to_dict: bool = True
-) -> Dict[Any, Union[int, float]]:
+) -> Union[Dict[Any, Union[int, float]], pd.Series]:
     """
     按指定列分组，对另一列进行聚合统计。
 

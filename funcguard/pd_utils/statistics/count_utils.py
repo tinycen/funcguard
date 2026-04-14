@@ -14,7 +14,7 @@ def value_counts(
     true_mask: Optional[pd.Series] = None,
     false_mask: Optional[pd.Series] = None,
     to_dict: bool = True
-) -> Mapping[Any, Union[int, float]]:
+) -> Union[Mapping[Any, Union[int, float]], pd.Series]:
     """
     统计DataFrame指定列中不同值的计数数据。
 

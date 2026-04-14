@@ -115,7 +115,7 @@ class DataFrameStatistics:
         true_mask: Optional[pd.Series] = None,
         false_mask: Optional[pd.Series] = None,
         to_dict: bool = True
-    ) -> Mapping[Any, Union[int, float]]:
+    ) -> Union[Mapping[Any, Union[int, float]], pd.Series]:
         """
         统计指定列中不同值的计数数据，自动使用内部掩码参数
 
@@ -169,7 +169,7 @@ class DataFrameStatistics:
         true_mask: Optional[pd.Series] = None,
         false_mask: Optional[pd.Series] = None,
         to_dict: bool = True
-    ) -> Dict[Any, Union[int, float]]:
+    ) -> Union[Dict[Any, Union[int, float]], pd.Series]:
         """
         按指定列分组，对另一列进行聚合统计，自动使用内部掩码参数
 
