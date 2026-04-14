@@ -1,6 +1,7 @@
 import pandas as pd
-from typing import List, Tuple, Union, Optional, Dict, Any, Mapping
+from typing import List, Tuple, Union, Optional, Dict, Any, Mapping, Literal
 from .mask_utils import build_single_mask, build_base_mask
+from ..convert_utils import convert_series
 
 
 def value_counts(
@@ -13,8 +14,8 @@ def value_counts(
     logic: str = "and",
     true_mask: Optional[pd.Series] = None,
     false_mask: Optional[pd.Series] = None,
-    to_dict: bool = True
-) -> Union[Mapping[Any, Union[int, float]], pd.Series]:
+    return_type: Literal["dict", "df", "series"] = "dict"
+) -> Union[Mapping[Any, Union[int, float]], pd.DataFrame, pd.Series]:
     """
     统计DataFrame指定列中不同值的计数数据。
 
@@ -30,10 +31,11 @@ def value_counts(
     - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"。
     - true_mask (pd.Series)：初始True掩码，默认为None。
     - false_mask (pd.Series)：初始False掩码，默认为None。
-    - to_dict (bool)：是否将结果转换为字典，默认为True。
+    - return_type (str)：返回类型，支持 "dict"（字典）、"df"（DataFrame）和 "series"（Series），
+        默认为 "dict"。
 
     返回：
-    - Mapping[Any, Union[int, float]]：以值为键，计数/百分比为值的字典。
+    - Union[Mapping[Any, Union[int, float]], pd.Series]：以值为键，计数/百分比为值的字典或Series。
 
     示例：
         >>> value_counts(df, "status")
@@ -76,11 +78,8 @@ def value_counts(
         dropna=dropna
     )
 
-    # 转换为字典返回
-    if to_dict:
-        return result_series.to_dict()
-    else:
-        return result_series
+    # 格式化并返回结果
+    return convert_series(result_series, return_type)
 
 
 def count(

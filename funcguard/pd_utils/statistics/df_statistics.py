@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import  Any, Dict, List, Tuple, Union, Optional, Mapping
+from typing import  Any, Dict, List, Tuple, Union, Optional, Mapping, Literal
 from .mask_utils import build_single_mask as _original_build_single_mask, build_base_mask as _original_build_base_mask, combine_masks
 from .count_utils import count as _original_count, value_counts as _original_value_counts
 from .agg_utils import group_agg as _original_group_agg
@@ -43,8 +43,8 @@ class DataFrameStatistics:
         self._false_mask = pd.Series([False] * self._length, index=self._index)
 
 
-    def build_base_mask(self, conditions: List[Tuple], logic: str = "and", 
-                       true_mask: Optional[pd.Series] = None, 
+    def build_base_mask(self, conditions: List[Tuple], logic: str = "and",
+                       true_mask: Optional[pd.Series] = None,
                        false_mask: Optional[pd.Series] = None) -> pd.Series:
         """
         构建基础查询条件掩码，自动使用内部掩码参数
@@ -54,7 +54,7 @@ class DataFrameStatistics:
         - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
         - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
         - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
-        
+
         返回：
         - pd.Series：布尔掩码，True表示符合条件的行
         """
@@ -69,10 +69,10 @@ class DataFrameStatistics:
     def build_single_mask(self, condition: Tuple) -> pd.Series:
         """
         构建单个掩码，用于简单条件判断，自动使用内部DataFrame
-        
+
         参数：
         - condition (Tuple)：条件元组，包含(列名, 运算符, 值)
-        
+
         返回：
         - pd.Series：布尔掩码，True表示符合条件的行
             **注意**：此Series是通过原生pandas表达式(df[col] > value)直接返回，
@@ -114,8 +114,8 @@ class DataFrameStatistics:
         logic: str = "and",
         true_mask: Optional[pd.Series] = None,
         false_mask: Optional[pd.Series] = None,
-        to_dict: bool = True
-    ) -> Union[Mapping[Any, Union[int, float]], pd.Series]:
+        return_type: Literal["dict", "df", "series"] = "dict"
+    ) -> Union[Mapping[Any, Union[int, float]], pd.DataFrame, pd.Series]:
         """
         统计指定列中不同值的计数数据，自动使用内部掩码参数
 
@@ -129,11 +129,11 @@ class DataFrameStatistics:
         - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
         - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
         - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
-        - to_dict (bool)：是否将结果转换为字典，默认为True。
+        - return_type (str)：返回类型，支持 "dict"（字典）、"df"（DataFrame）和 "series"（Series），
+            默认为 "dict"。
 
-        
         返回：
-        - Mapping[Any, Union[int, float]]：以值为键，计数/百分比为值的字典
+        - Union[Mapping[Any, Union[int, float]], pd.DataFrame, pd.Series]：以值为键，计数/百分比为值的字典、DataFrame或Series
 
         示例：
             >>> stats.value_counts("status")
@@ -154,7 +154,7 @@ class DataFrameStatistics:
             false_mask = self._false_mask
         return _original_value_counts(
             self._df, column, mode, sort, dropna,
-            conditions, logic, true_mask, false_mask, to_dict
+            conditions, logic, true_mask, false_mask, return_type
         )
 
 
@@ -168,8 +168,8 @@ class DataFrameStatistics:
         logic: str = "and",
         true_mask: Optional[pd.Series] = None,
         false_mask: Optional[pd.Series] = None,
-        to_dict: bool = True
-    ) -> Union[Dict[Any, Union[int, float]], pd.Series]:
+        return_type: Literal["dict", "df", "series"] = "dict"
+    ) -> Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]:
         """
         按指定列分组，对另一列进行聚合统计，自动使用内部掩码参数
 
@@ -184,11 +184,11 @@ class DataFrameStatistics:
         - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
         - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
         - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
-        - to_dict (bool)：是否将结果转换为字典，默认为True。
+        - return_type (str)：返回类型，支持 "dict"（字典）、"df"（DataFrame）和 "series"（Series），
+            默认为 "dict"。
 
-        
         返回：
-        - Dict[Any, Union[int, float]]：以分组值为键，聚合结果为值的字典
+        - Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]：以分组值为键，聚合结果为值的字典、DataFrame或Series
 
         示例：
             >>> stats.group_agg("category", "amount", "sum")
@@ -205,7 +205,7 @@ class DataFrameStatistics:
             false_mask = self._false_mask
         return _original_group_agg(
             self._df, group_col, agg_col, agg_func, sort,
-            conditions, logic, true_mask, false_mask, to_dict
+            conditions, logic, true_mask, false_mask, return_type
         )
 
 

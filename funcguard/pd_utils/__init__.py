@@ -2,6 +2,7 @@ import pandas as pd
 from .fill_round import fill_na, round_columns
 from .date_utils import fill_nat, cal_date_diff
 from .convert_utils import (
+    convert_series,
     convert_columns, 
     convert_decimal, 
     convert_numeric_series, 
@@ -31,7 +32,8 @@ __all__ = [
 	'round_columns',
     'cal_date_diff',
 
-	# 数据类型转换类
+	# 数据转换类
+    'convert_series',
 	'convert_columns',
 	'convert_decimal',
     'convert_numeric_series',

@@ -1,4 +1,3 @@
-
 """
 聚合(aggregation)操作工具模块。
 
@@ -7,8 +6,9 @@ sum、mean、max、min、count、median、std、var等聚合计算。
 """
 
 import pandas as pd
-from typing import Any, Dict, Optional, Union, List, Tuple
+from typing import Any, Dict, Optional, Union, List, Tuple, Literal
 from .mask_utils import build_single_mask, build_base_mask
+from ..convert_utils import convert_series
 
 
 def group_agg(
@@ -21,8 +21,8 @@ def group_agg(
     logic: str = "and",
     true_mask: Optional[pd.Series] = None,
     false_mask: Optional[pd.Series] = None,
-    to_dict: bool = True
-) -> Union[Dict[Any, Union[int, float]], pd.Series]:
+    return_type: Literal["dict", "df", "series"] = "dict"
+) -> Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]:
     """
     按指定列分组，对另一列进行聚合统计。
 
@@ -39,10 +39,11 @@ def group_agg(
     - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"。
     - true_mask (pd.Series)：初始True掩码，默认为None。
     - false_mask (pd.Series)：初始False掩码，默认为None。
-    - to_dict (bool)：是否将结果转换为字典，默认为True。
+    - return_type (str)：返回类型，支持 "dict"（字典）、"df"（DataFrame）和 "series"（Series），
+        默认为 "dict"。
 
     返回：
-    - Dict[Any, Union[int, float]]：以分组值为键，聚合结果为值的字典。
+    - Union[Dict[Any, Union[int, float]], pd.Series]：以分组值为键，聚合结果为值的字典或Series。
 
     示例：
         >>> group_agg(df, "category", "amount", "sum")
@@ -80,9 +81,6 @@ def group_agg(
         result_series = result_series.sort_values(ascending=True)
     elif sort == "desc":
         result_series = result_series.sort_values(ascending=False)
-    
-    # 转换为字典返回
-    if to_dict:
-        return result_series.to_dict()
-    else:
-        return result_series
+
+    # 格式化并返回结果
+    return convert_series(result_series, return_type)

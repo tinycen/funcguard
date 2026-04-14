@@ -14,7 +14,8 @@ from .pd_utils import (
     round_columns as pd_round_columns,
     cal_date_diff as pd_cal_date_diff,
 
-    # 数据类型转换类
+    # 数据转换类
+    convert_series as pd_convert_series,
     convert_columns as pd_convert_columns,
     convert_decimal as pd_convert_decimal,
     convert_numeric_series as pd_convert_numeric_series,
@@ -86,7 +87,8 @@ __all__ = [
     "pd_fill_nat",
     "pd_round_columns",
 
-    # 数据类型转换类
+    # 数据转换类
+    "pd_convert_series",
     "pd_cal_date_diff",
     "pd_convert_columns",
     "pd_convert_decimal",

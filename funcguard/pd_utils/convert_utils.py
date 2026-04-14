@@ -1,6 +1,6 @@
 import pandas as pd
 from decimal import Decimal
-from typing import Union, List, Dict, Any, Optional
+from typing import Union, List, Dict, Any, Optional, Literal
 from pandas import (
     Int64Dtype,
     Float64Dtype,
@@ -9,6 +9,47 @@ from pandas import (
 )  # pyright: ignore
 from .json_utils import json_loads
 
+
+def convert_series(
+    data: pd.Series,
+    return_type: Literal["dict", "df", "series"] = "dict"
+) -> Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]:
+    """
+    将 pandas Series 格式化为指定的返回类型。
+
+    参数：
+    - data (pd.Series)：输入的 pandas Series 数据。
+    - return_type (str)：返回类型，支持：
+        - "dict"：返回字典（默认）。
+        - "df"：返回 DataFrame。
+        - "series"：返回 pandas Series。
+
+    返回：
+    - Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]：
+        根据 return_type 返回格式化后的结果。
+
+    示例：
+        >>> series = pd.Series([1, 2, 3], index=['a', 'b', 'c'])
+        >>> convert_series(series, "dict")
+        {'a': 1, 'b': 2, 'c': 3}
+        >>> convert_series(series, "df")
+           0
+        a  1
+        b  2
+        c  3
+        >>> convert_series(series, "series")
+        a    1
+        b    2
+        c    3
+        dtype: int64
+    """
+
+    if return_type == "dict":
+        return data.to_dict()
+    elif return_type == "df":
+        return data.to_frame()
+    else:  # "series"
+        return data
 
 
 # 数据类型映射常量
