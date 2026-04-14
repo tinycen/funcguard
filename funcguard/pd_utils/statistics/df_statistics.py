@@ -113,7 +113,8 @@ class DataFrameStatistics:
         conditions: Optional[Union[Tuple, List[Tuple]]] = None,
         logic: str = "and",
         true_mask: Optional[pd.Series] = None,
-        false_mask: Optional[pd.Series] = None
+        false_mask: Optional[pd.Series] = None,
+        to_dict: bool = True
     ) -> Mapping[Any, Union[int, float]]:
         """
         统计指定列中不同值的计数数据，自动使用内部掩码参数
@@ -128,7 +129,9 @@ class DataFrameStatistics:
         - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
         - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
         - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
+        - to_dict (bool)：是否将结果转换为字典，默认为True。
 
+        
         返回：
         - Mapping[Any, Union[int, float]]：以值为键，计数/百分比为值的字典
 
@@ -151,7 +154,7 @@ class DataFrameStatistics:
             false_mask = self._false_mask
         return _original_value_counts(
             self._df, column, mode, sort, dropna,
-            conditions, logic, true_mask, false_mask
+            conditions, logic, true_mask, false_mask, to_dict
         )
 
 
@@ -164,7 +167,8 @@ class DataFrameStatistics:
         conditions: Optional[Union[Tuple, List[Tuple]]] = None,
         logic: str = "and",
         true_mask: Optional[pd.Series] = None,
-        false_mask: Optional[pd.Series] = None
+        false_mask: Optional[pd.Series] = None,
+        to_dict: bool = True
     ) -> Dict[Any, Union[int, float]]:
         """
         按指定列分组，对另一列进行聚合统计，自动使用内部掩码参数
@@ -180,7 +184,9 @@ class DataFrameStatistics:
         - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"
         - true_mask (pd.Series)：初始True掩码，默认为None（使用内部缓存）
         - false_mask (pd.Series)：初始False掩码，默认为None（使用内部缓存）
+        - to_dict (bool)：是否将结果转换为字典，默认为True。
 
+        
         返回：
         - Dict[Any, Union[int, float]]：以分组值为键，聚合结果为值的字典
 
@@ -199,7 +205,7 @@ class DataFrameStatistics:
             false_mask = self._false_mask
         return _original_group_agg(
             self._df, group_col, agg_col, agg_func, sort,
-            conditions, logic, true_mask, false_mask
+            conditions, logic, true_mask, false_mask, to_dict
         )
 
 

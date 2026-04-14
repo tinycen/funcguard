@@ -12,7 +12,8 @@ def value_counts(
     conditions: Optional[Union[Tuple, List[Tuple]]] = None,
     logic: str = "and",
     true_mask: Optional[pd.Series] = None,
-    false_mask: Optional[pd.Series] = None
+    false_mask: Optional[pd.Series] = None,
+    to_dict: bool = True
 ) -> Mapping[Any, Union[int, float]]:
     """
     统计DataFrame指定列中不同值的计数数据。
@@ -29,6 +30,7 @@ def value_counts(
     - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"。
     - true_mask (pd.Series)：初始True掩码，默认为None。
     - false_mask (pd.Series)：初始False掩码，默认为None。
+    - to_dict (bool)：是否将结果转换为字典，默认为True。
 
     返回：
     - Mapping[Any, Union[int, float]]：以值为键，计数/百分比为值的字典。
@@ -75,7 +77,10 @@ def value_counts(
     )
 
     # 转换为字典返回
-    return result_series.to_dict()
+    if to_dict:
+        return result_series.to_dict()
+    else:
+        return result_series
 
 
 def count(

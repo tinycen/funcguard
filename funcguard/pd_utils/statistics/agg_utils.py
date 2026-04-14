@@ -20,7 +20,8 @@ def group_agg(
     conditions: Optional[Union[Tuple, List[Tuple]]] = None,
     logic: str = "and",
     true_mask: Optional[pd.Series] = None,
-    false_mask: Optional[pd.Series] = None
+    false_mask: Optional[pd.Series] = None,
+    to_dict: bool = True
 ) -> Dict[Any, Union[int, float]]:
     """
     按指定列分组，对另一列进行聚合统计。
@@ -38,6 +39,7 @@ def group_agg(
     - logic (str)：逻辑操作类型，"and" 或 "or"，默认为 "and"。
     - true_mask (pd.Series)：初始True掩码，默认为None。
     - false_mask (pd.Series)：初始False掩码，默认为None。
+    - to_dict (bool)：是否将结果转换为字典，默认为True。
 
     返回：
     - Dict[Any, Union[int, float]]：以分组值为键，聚合结果为值的字典。
@@ -78,6 +80,9 @@ def group_agg(
         result_series = result_series.sort_values(ascending=True)
     elif sort == "desc":
         result_series = result_series.sort_values(ascending=False)
-
+    
     # 转换为字典返回
-    return result_series.to_dict()
+    if to_dict:
+        return result_series.to_dict()
+    else:
+        return result_series
