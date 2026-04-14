@@ -110,6 +110,7 @@ result = stats.group_agg(
 | `sort` | `Optional[str]` | `None` | 排序方式：`"asc"` 升序 / `"desc"` 降序 / `None` 不排序 |
 | `conditions` | `Optional[list]` | `None` | 可选的过滤条件 |
 | `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
+| `to_dict` | `bool` | `True` | 是否将结果转换为字典 |
 
 ### value_counts - 不同值计数统计
 
@@ -161,6 +162,7 @@ result = stats.value_counts(
 | `dropna` | `bool` | `True` | 是否排除空值 |
 | `conditions` | `Optional[list]` | `None` | 可选的过滤条件 |
 | `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
+| `to_dict` | `bool` | `True` | 是否将结果转换为字典 |
 
 ## 性能优化
 

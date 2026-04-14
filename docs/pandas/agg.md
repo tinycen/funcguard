@@ -73,6 +73,7 @@ result = pd_group_agg(
 | `sort` | `Optional[str]` | `None` | 排序方式：`"asc"` 升序 / `"desc"` 降序 / `None` 不排序 |
 | `conditions` | `Optional[list]` | `None` | 可选的过滤条件 |
 | `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
+| `to_dict` | `bool` | `True` | 是否将结果转换为字典 |
 
 ### 支持的聚合函数
 

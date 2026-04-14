@@ -90,3 +90,4 @@ result = pd_value_counts(
 | `dropna` | `bool` | `True` | 是否排除空值 |
 | `conditions` | `Optional[list]` | `None` | 可选的过滤条件 |
 | `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
+| `to_dict` | `bool` | `True` | 是否将结果转换为字典 |
