@@ -77,6 +77,22 @@ result = pd_value_counts(
     ],
     logic="and"
 )
+
+# 返回 DataFrame 格式
+result = pd_value_counts(df, "status", return_type="df")
+#          count
+# status
+# active     150
+# inactive    50
+# pending     20
+
+# 返回 Series 格式
+result = pd_value_counts(df, "status", return_type="series")
+# status
+# active     150
+# inactive    50
+# pending     20
+# Name: count, dtype: int64
 ```
 
 ### 参数说明
@@ -90,4 +106,4 @@ result = pd_value_counts(
 | `dropna` | `bool` | `True` | 是否排除空值 |
 | `conditions` | `Optional[list]` | `None` | 可选的过滤条件 |
 | `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
-| `to_dict` | `bool` | `True` | 是否将结果转换为字典 |
+| `return_type` | `str` | `"dict"` | 返回类型：`"dict"`（字典）/ `"df"`（DataFrame）/ `"series"`（Series）|

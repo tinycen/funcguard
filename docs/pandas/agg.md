@@ -60,6 +60,22 @@ result = pd_group_agg(
     ],
     logic="and"
 )
+
+# 返回 DataFrame 格式
+result = pd_group_agg(df, "category", "amount", "sum", return_type="df")
+#        amount
+# category
+# A        1000
+# B        2000
+# C        1500
+
+# 返回 Series 格式
+result = pd_group_agg(df, "category", "amount", "sum", return_type="series")
+# category
+# A    1000
+# B    2000
+# C    1500
+# Name: amount, dtype: int64
 ```
 
 ### 参数说明
@@ -73,7 +89,7 @@ result = pd_group_agg(
 | `sort` | `Optional[str]` | `None` | 排序方式：`"asc"` 升序 / `"desc"` 降序 / `None` 不排序 |
 | `conditions` | `Optional[list]` | `None` | 可选的过滤条件 |
 | `logic` | `str` | `"and"` | 多条件逻辑：`"and"` / `"or"` |
-| `to_dict` | `bool` | `True` | 是否将结果转换为字典 |
+| `return_type` | `str` | `"dict"` | 返回类型：`"dict"`（字典）/ `"df"`（DataFrame）/ `"series"`（Series）|
 
 ### 支持的聚合函数
 

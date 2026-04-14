@@ -118,3 +118,36 @@ df = convert_datetime_str(df, ['create_time'], include_time=False)
 # 不包含秒
 df = convert_datetime_str(df, ['create_time'], include_seconds=False)
 ```
+
+## convert_series - Series 格式转换
+
+将 pandas Series 格式化为指定的返回类型（字典、DataFrame 或 Series）。
+
+```python
+from funcguard.pd_utils import convert_series
+import pandas as pd
+
+series = pd.Series([1, 2, 3], index=['a', 'b', 'c'])
+
+# 转换为字典（默认）
+result = convert_series(series, "dict")
+# {'a': 1, 'b': 2, 'c': 3}
+
+# 转换为 DataFrame
+result = convert_series(series, "df")
+#    0
+# a  1
+# b  2
+# c  3
+
+# 保持为 Series
+result = convert_series(series, "series")
+# a    1
+# b    2
+# c    3
+# dtype: int64
+```
+
+**参数说明：**
+- `data`: 输入的 pandas Series 数据
+- `return_type`: 返回类型，支持 `"dict"`（字典）、`"df"`（DataFrame）、`"series"`（Series），默认为 `"dict"`
