@@ -1,4 +1,4 @@
-from .core import timeout_handler, retry_function
+from .core import timeout_handler, retry_function, ask_select
 from .tools import send_request, curl_cffi_request, check_url_valid, encode_basic_auth, md5_hash
 from .time_utils import (
     time_log, time_diff, time_monitor, time_wait, color_logger,
@@ -50,6 +50,7 @@ __all__ = [
     # 核心功能
     "timeout_handler",
     "retry_function",
+    "ask_select",
 
     # 网络请求工具
     "md5_hash",

@@ -1,15 +1,18 @@
+import time
+import sys
+from concurrent.futures import ThreadPoolExecutor , TimeoutError
+
+
 class FuncguardTimeoutError(Exception):
     """
     funcguard库专用的超时异常类。
-    
+
     为了避免与concurrent.futures.TimeoutError和Python内置TimeoutError的命名冲突，
     特定义此异常类来明确表示这是funcguard库抛出的函数执行超时异常。
     这样用户可以清晰地区分异常来源，并进行针对性的异常处理。
     """
     pass
 
-import time
-from concurrent.futures import ThreadPoolExecutor , TimeoutError
 
 # 计算函数运行时间
 def timeout_handler( func, args = (), kwargs = None, execution_timeout = 90 ):
@@ -86,3 +89,86 @@ def retry_function( func , max_retries = 5 , execute_timeout = 90 , task_name = 
     if last_exception:
         raise last_exception  # 重新抛出最后一个异常
     return None
+
+
+# 交互式选择菜单
+def ask_select(
+    options: dict,
+    default_key = None,
+    prompt: str = "请选择",
+    timeout: int = 5,
+):
+    """
+    显示一个数字选择菜单，接受用户输入，超时自动返回默认值。
+
+    参数:
+        options: 字典，键为选项标识（任意类型），值为显示文本
+                 例如: {True: "需要填写属性", False: "不需要填写属性", "all": "不限制"}
+        default_key: 超时或输入无效时的默认返回值，若为None则使用最后一个选项的键
+        prompt: 提示语前缀
+        timeout: 超时时间（秒），默认5秒
+
+    返回:
+        用户选择的选项键（options中的某个键），或default_key
+
+    示例:
+        >>> result = ask_select(
+        ...     {True: "需要填写属性", False: "不需要填写属性", "all": "不限制"},
+        ...     default_key="all",
+        ...     prompt="请选择属性填写模式",
+        ...     timeout=5,
+        ... )
+    """
+    # 确保选项非空
+    if not options:
+        raise ValueError("options字典不能为空")
+
+    # 设置默认值
+    if default_key is None:
+        default_key = list(options.keys())[-1]
+
+    # 构建选项列表（保持字典顺序）
+    items = list(options.items())
+
+    # 显示选项
+    option_lines = ", ".join([f"{i+1}-{label}" for i, (_, label) in enumerate(items)])
+    default_label = options.get(default_key, default_key)
+    print(f"{prompt} ({option_lines})，{timeout} 秒后自动选择[{default_label}]: ", end="", flush=True)
+
+    # 使用线程实现跨平台超时输入
+    from threading import Thread
+    from queue import Queue, Empty
+
+    result_queue = Queue()
+
+    def input_thread():
+        try:
+            user_input = input().strip()
+            result_queue.put(user_input)
+        except EOFError:
+            result_queue.put(None)
+
+    thread = Thread(target=input_thread, daemon=True)
+    thread.start()
+    thread.join(timeout)
+
+    try:
+        user_input = result_queue.get_nowait()
+    except Empty:
+        user_input = None
+
+    if user_input is None:
+        print(f"\n超时，自动选择[{default_label}]")
+        return default_key
+
+    # 验证输入
+    try:
+        choice = int(user_input)
+        if 1 <= choice <= len(items):
+            return items[choice - 1][0]
+    except ValueError:
+        pass
+
+    # 输入无效，返回默认值
+    print(f"输入无效，使用默认选项[{default_label}]")
+    return default_key
