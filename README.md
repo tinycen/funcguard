@@ -70,7 +70,7 @@ except Exception as e:
 
 ### 交互式选择菜单
 
-使用 `ask_select` 函数创建一个带数字编号的交互式选择菜单，支持超时自动选择：
+使用 `ask_select` 函数创建一个带数字编号的交互式选择菜单（编号从0开始），支持超时自动选择和倒计时动态显示：
 
 ```python
 from funcguard import ask_select

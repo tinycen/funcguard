@@ -1,5 +1,4 @@
 import time
-import sys
 from concurrent.futures import ThreadPoolExecutor , TimeoutError
 
 
@@ -131,9 +130,8 @@ def ask_select(
     items = list(options.items())
 
     # 显示选项
-    option_lines = ", ".join([f"{i+1}-{label}" for i, (_, label) in enumerate(items)])
+    option_lines = ", ".join([f"{i}-{label}" for i, (_, label) in enumerate(items)])
     default_label = options.get(default_key, default_key)
-    print(f"{prompt} ({option_lines})，{timeout} 秒后自动选择[{default_label}]: ", end="", flush=True)
 
     # 使用线程实现跨平台超时输入
     from threading import Thread
@@ -150,7 +148,16 @@ def ask_select(
 
     thread = Thread(target=input_thread, daemon=True)
     thread.start()
-    thread.join(timeout)
+
+    # 倒计时显示
+    remaining = timeout
+    while remaining > 0 and thread.is_alive():
+        print(f"\r{prompt} ({option_lines})，{remaining} 秒后自动选择[{default_label}]: ", end="", flush=True)
+        time.sleep(1)
+        remaining -= 1
+
+    # 等待线程结束（如果用户已输入）或超时
+    thread.join(0)
 
     try:
         user_input = result_queue.get_nowait()
