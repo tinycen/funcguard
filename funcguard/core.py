@@ -172,7 +172,9 @@ def ask_select(
     try:
         choice = int(user_input)
         if 0 <= choice < len(items):
-            return items[choice][0]
+            selected_key, selected_label = items[choice]
+            print(f"\n已选择 {choice}：{selected_label}")
+            return selected_key
     except ValueError:
         pass
 
