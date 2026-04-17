@@ -171,8 +171,8 @@ def ask_select(
     # 验证输入
     try:
         choice = int(user_input)
-        if 1 <= choice <= len(items):
-            return items[choice - 1][0]
+        if 0 <= choice < len(items):
+            return items[choice][0]
     except ValueError:
         pass
 
