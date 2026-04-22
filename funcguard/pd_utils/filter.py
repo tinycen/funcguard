@@ -41,6 +41,7 @@ def pd_filter(
     - 比较运算：>, >=, <, <=, ==, !=
     - 集合运算：in, not in
     - 空值判断：null, not null
+    - 空值/空容器判断：empty, not empty（覆盖 NaN/None、空字符串、空列表、空元组、空字典、空集合）
     - 字符串匹配：contains, not contains, startswith, endswith
 
     示例：

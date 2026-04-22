@@ -20,9 +20,13 @@ mask = pd_build_mask(df, ('name', '==', '张三'))
 mask = pd_build_mask(df, ('dept', 'in', ['IT', 'HR', 'Finance']))
 mask = pd_build_mask(df, ('status', 'not in', ['deleted', 'inactive']))
 
-# 空值判断
+# 空值判断（仅判断 NaN/None）
 mask = pd_build_mask(df, ('email', 'null'))
 mask = pd_build_mask(df, ('phone', 'not null'))
+
+# 空值/空容器判断（覆盖 NaN/None、空字符串、空列表、空元组、空字典、空集合）
+mask = pd_build_mask(df, ('tags', 'empty'))      # 筛选空列表/空元组等
+mask = pd_build_mask(df, ('segments', 'not empty'))  # 筛选非空值
 
 # 字符串匹配
 mask = pd_build_mask(df, ('name', 'contains', '张'))

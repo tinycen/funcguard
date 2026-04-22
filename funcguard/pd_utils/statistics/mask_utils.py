@@ -2,6 +2,24 @@ import pandas as pd
 from typing import List, Tuple, Optional
 
 
+def _is_empty(x):
+    """检查值是否为空（NaN/None、空字符串、空列表、空元组、空字典、空集合）"""
+    if pd.isna(x):
+        return True
+    if isinstance(x, (str, list, tuple, dict, set)):
+        return len(x) == 0
+    return False
+
+
+def _is_not_empty(x):
+    """检查值是否非空（与_is_empty相反）"""
+    if pd.isna(x):
+        return False
+    if isinstance(x, (str, list, tuple, dict, set)):
+        return len(x) > 0
+    return True
+
+
 def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
     """
     构建单个掩码，用于简单条件判断
@@ -64,9 +82,9 @@ def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
         return df[column].notnull()
 
     elif op == "empty":
-        return df[column].isnull() | (df[column] == "")
+        return df[column].apply(_is_empty)
     elif op == "not empty":
-        return df[column].notnull() & (df[column] != "")
+        return df[column].apply(_is_not_empty)
 
     elif op == "contains":
         return df[column].str.contains(value, na=False)

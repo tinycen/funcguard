@@ -18,6 +18,6 @@
 | 比较运算 | `>`, `>=`, `<`, `<=`, `==`, `!=` | 数值/字符串比较 | `('age', '>', 25)` |
 | 集合运算 | `in`, `not in` | 在/不在集合中 | `('status', 'in', ['A', 'B'])` |
 | 空值判断 | `null`, `not null` | 为空（仅判断 NaN/None） | `('email', 'null')` |
-| 空字符串判断 | `empty`, `not empty` | 为空（同时覆盖 NaN/None 和空字符串 ""） | `('phone', 'not empty')` |
+| 空值/空容器判断 | `empty`, `not empty` | 为空（覆盖 NaN/None、空字符串、空列表、空元组、空字典、空集合） | `('phone', 'not empty')` |
 | 字符串匹配 | `startswith`, `endswith` | 以指定字符串开头/结尾 | `('code', 'startswith', 'A')` |
 | 字符串匹配 | `contains`, `not contains` | 包含/不包含字符串 | `('name', 'contains', '张')` |
