@@ -1,9 +1,14 @@
+import numpy as np
 import pandas as pd
 from typing import List, Tuple, Optional
 
 
+
 def _is_empty(x):
     """检查值是否为空（NaN/None、空字符串、空列表、空元组、空字典、空集合）"""
+    # 处理 numpy/pandas 数组类型
+    if isinstance(x, (np.ndarray, pd.Series)):
+        return x.size == 0
     if pd.isna(x):
         return True
     if isinstance(x, (str, list, tuple, dict, set)):
@@ -13,6 +18,9 @@ def _is_empty(x):
 
 def _is_not_empty(x):
     """检查值是否非空（与_is_empty相反）"""
+    # 处理 numpy/pandas 数组类型
+    if isinstance(x, (np.ndarray, pd.Series)):
+        return x.size > 0
     if pd.isna(x):
         return False
     if isinstance(x, (str, list, tuple, dict, set)):
