@@ -6,11 +6,16 @@ from typing import List, Tuple, Optional
 
 def _is_empty(x):
     """检查值是否为空（NaN/None、空字符串、空列表、空元组、空字典、空集合）"""
-    # 处理 numpy/pandas 数组类型
+    # 处理 numpy/pandas 数组类型（0维数组也会被isinstance识别）
     if isinstance(x, (np.ndarray, pd.Series)):
         return x.size == 0
-    if pd.isna(x):
-        return True
+    # 使用 try-except 避免 pd.isna() 在某些类型上的歧义
+    try:
+        if pd.isna(x):
+            return True
+    except ValueError:
+        # pd.isna() 返回数组或产生歧义时，说明不是空值
+        pass
     if isinstance(x, (str, list, tuple, dict, set)):
         return len(x) == 0
     return False
@@ -21,8 +26,13 @@ def _is_not_empty(x):
     # 处理 numpy/pandas 数组类型
     if isinstance(x, (np.ndarray, pd.Series)):
         return x.size > 0
-    if pd.isna(x):
-        return False
+    # 使用 try-except 避免 pd.isna() 在某些类型上的歧义
+    try:
+        if pd.isna(x):
+            return False
+    except ValueError:
+        # pd.isna() 返回数组或产生歧义时，说明有值
+        return True
     if isinstance(x, (str, list, tuple, dict, set)):
         return len(x) > 0
     return True
