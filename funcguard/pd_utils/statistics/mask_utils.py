@@ -9,6 +9,9 @@ def _is_empty(x):
     # 处理 numpy/pandas 数组类型（0维数组也会被isinstance识别）
     if isinstance(x, (np.ndarray, pd.Series)):
         return x.size == 0
+    # 原生容器优先按长度判断，避免 pd.isna([]) 返回空数组引发歧义
+    if isinstance(x, (str, list, tuple, dict, set)):
+        return len(x) == 0
     # 使用 try-except 避免 pd.isna() 在某些类型上的歧义
     try:
         if pd.isna(x):
@@ -16,8 +19,6 @@ def _is_empty(x):
     except ValueError:
         # pd.isna() 返回数组或产生歧义时，说明不是空值
         pass
-    if isinstance(x, (str, list, tuple, dict, set)):
-        return len(x) == 0
     return False
 
 
@@ -26,6 +27,9 @@ def _is_not_empty(x):
     # 处理 numpy/pandas 数组类型
     if isinstance(x, (np.ndarray, pd.Series)):
         return x.size > 0
+    # 原生容器优先按长度判断，避免 pd.isna([]) 返回空数组引发歧义
+    if isinstance(x, (str, list, tuple, dict, set)):
+        return len(x) > 0
     # 使用 try-except 避免 pd.isna() 在某些类型上的歧义
     try:
         if pd.isna(x):
@@ -33,8 +37,6 @@ def _is_not_empty(x):
     except ValueError:
         # pd.isna() 返回数组或产生歧义时，说明有值
         return True
-    if isinstance(x, (str, list, tuple, dict, set)):
-        return len(x) > 0
     return True
 
 
