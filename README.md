@@ -75,12 +75,12 @@ except Exception as e:
 ```python
 from funcguard import ask_select
 
-# 基础用法 - 选择属性填写模式
+# 基础用法 - 选择属性填写模式（默认超时10秒）
 result = ask_select(
     options={True: "需要填写属性", False: "不需要填写属性", "all": "不限制"},
     default_key="all",
     prompt="请选择属性填写模式",
-    timeout=5
+    timeout=10
 )
 print(f"用户选择: {result}")  # 返回 True, False 或 "all"
 
@@ -89,7 +89,7 @@ env = ask_select(
     options={"dev": "开发环境", "test": "测试环境", "prod": "生产环境"},
     default_key="dev",
     prompt="请选择部署环境",
-    timeout=3
+    timeout=10
 )
 print(f"当前环境: {env}")
 
@@ -98,7 +98,16 @@ count = ask_select(
     options={10: "10条", 50: "50条", 100: "100条"},
     default_key=50,
     prompt="查询数量",
-    timeout=5
+    timeout=10
+)
+print(f"查询 {count} 条数据")
+
+# 无超时模式 - 一直等待用户输入
+count = ask_select(
+    options={10: "10条", 50: "50条", 100: "100条"},
+    default_key=50,
+    prompt="查询数量",
+    timeout=None
 )
 print(f"查询 {count} 条数据")
 ```

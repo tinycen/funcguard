@@ -95,7 +95,7 @@ def ask_select(
     options: dict,
     default_key = None,
     prompt: str = "请选择",
-    timeout: int = 5,
+    timeout: int | None = 10,
 ):
     """
     显示一个数字选择菜单，接受用户输入，超时自动返回默认值。
@@ -105,7 +105,7 @@ def ask_select(
                  例如: {True: "需要填写属性", False: "不需要填写属性", "all": "不限制"}
         default_key: 超时或输入无效时的默认返回值，若为None则使用最后一个选项的键
         prompt: 提示语前缀
-        timeout: 超时时间（秒），默认5秒
+        timeout: 超时时间（秒），默认10秒；若为None则不设置超时，一直等待用户输入
 
     返回:
         用户选择的选项键（options中的某个键），或default_key
@@ -115,7 +115,7 @@ def ask_select(
         ...     {True: "需要填写属性", False: "不需要填写属性", "all": "不限制"},
         ...     default_key="all",
         ...     prompt="请选择属性填写模式",
-        ...     timeout=5,
+        ...     timeout=10,
         ... )
     """
     # 确保选项非空
@@ -149,12 +149,17 @@ def ask_select(
     thread = Thread(target=input_thread, daemon=True)
     thread.start()
 
-    # 倒计时显示
-    remaining = timeout
-    while remaining > 0 and thread.is_alive():
-        print(f"\r{prompt} ({option_lines})，{remaining} 秒后自动选择[{default_label}]: ", end="", flush=True)
-        time.sleep(1)
-        remaining -= 1
+    # 倒计时显示（仅当设置了timeout时）
+    if timeout is not None:
+        remaining = timeout
+        while remaining > 0 and thread.is_alive():
+            print(f"\r{prompt} ({option_lines})，{remaining} 秒后自动选择[{default_label}]: ", end="", flush=True)
+            time.sleep(1)
+            remaining -= 1
+    else:
+        # 无超时，直接显示提示并等待用户输入
+        print(f"{prompt} ({option_lines}): ", end="", flush=True)
+        thread.join()
 
     # 等待线程结束（如果用户已输入）或超时
     thread.join(0)
@@ -164,18 +169,18 @@ def ask_select(
     except Empty:
         user_input = None
 
-    if user_input is None:
+    if user_input is None and timeout is not None:
         print(f"\n超时，自动选择[{default_label}]")
         return default_key
 
     # 验证输入
     try:
-        choice = int(user_input)
+        choice = int(user_input)  # pyright: ignore[reportArgumentType]
         if 0 <= choice < len(items):
             selected_key, selected_label = items[choice]
             print(f"\n已选择 {choice}：{selected_label}")
             return selected_key
-    except ValueError:
+    except (ValueError, TypeError):
         pass
 
     # 输入无效，返回默认值
