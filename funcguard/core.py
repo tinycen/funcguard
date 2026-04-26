@@ -92,7 +92,7 @@ def retry_function( func , max_retries = 5 , execute_timeout = 90 , task_name = 
 
 # 交互式选择菜单
 def ask_select(
-    options: dict,
+    options: dict | list,
     default_key = None,
     prompt: str = "请选择",
     timeout: int | None = 10,
@@ -101,37 +101,61 @@ def ask_select(
     显示一个数字选择菜单，接受用户输入，超时自动返回默认值。
 
     参数:
-        options: 字典，键为选项标识（任意类型），值为显示文本
-                 例如: {True: "需要填写属性", False: "不需要填写属性", "all": "不限制"}
-        default_key: 超时或输入无效时的默认返回值，若为None则使用最后一个选项的键
+        options: 字典或列表。
+                 字典模式: 键为选项标识，值为显示文本，返回选中的键
+                 列表模式: 元素为显示文本，返回选中的元素值
+                 例如: {True: "需要填写属性", False: "不需要填写属性"} 或 ["选项A", "选项B", "选项C"]
+        default_key: 超时或输入无效时的默认返回值
+                     字典模式下为某个键，若为None则使用最后一个选项的键
+                     列表模式下为某个元素值，若为None则使用最后一个元素
         prompt: 提示语前缀
         timeout: 超时时间（秒），默认10秒；若为None则不设置超时，一直等待用户输入
 
     返回:
-        用户选择的选项键（options中的某个键），或default_key
+        字典模式: 返回选项键（options中的某个键），或default_key
+        列表模式: 返回选中的列表元素值，或default_key
 
     示例:
+        >>> # 字典模式
         >>> result = ask_select(
         ...     {True: "需要填写属性", False: "不需要填写属性", "all": "不限制"},
         ...     default_key="all",
         ...     prompt="请选择属性填写模式",
         ...     timeout=10,
         ... )
+        >>> # 列表模式
+        >>> value = ask_select(
+        ...     ["选项A", "选项B", "选项C"],
+        ...     default_key="选项A",
+        ...     prompt="请选择一个选项",
+        ...     timeout=10,
+        ... )
     """
     # 确保选项非空
     if not options:
-        raise ValueError("options字典不能为空")
+        raise ValueError("options不能为空")
 
-    # 设置默认值
-    if default_key is None:
-        default_key = list(options.keys())[-1]
+    # 判断是字典，还是列表
+    is_list_mode = isinstance(options, list)
 
-    # 构建选项列表（保持字典顺序）
-    items = list(options.items())
+    # 设置默认值并构建选项列表
+    if is_list_mode:
+        # 列表模式: 将列表转为 {值: 显示文本} 的字典格式
+        if default_key is None:
+            default_key = options[-1]
+        items = [(value, value) for value in options]
+    else:
+        # 字典模式: 保持原有逻辑
+        if default_key is None:
+            default_key = list(options.keys())[-1]
+        items = list(options.items())
 
     # 显示选项
     option_lines = ", ".join([f"{i}-{label}" for i, (_, label) in enumerate(items)])
-    default_label = options.get(default_key, default_key)
+    if is_list_mode:
+        default_label = default_key
+    else:
+        default_label = options.get(default_key, default_key)
 
     # 使用线程实现跨平台超时输入
     from threading import Thread

@@ -70,7 +70,10 @@ except Exception as e:
 
 ### 交互式选择菜单
 
-使用 `ask_select` 函数创建一个带数字编号的交互式选择菜单（编号从0开始），支持超时自动选择和倒计时动态显示：
+使用 `ask_select` 函数创建一个带数字编号的交互式选择菜单（编号从0开始），支持超时自动选择和倒计时动态显示。`options` 参数支持**字典**或**列表**两种模式：
+
+#### 字典模式
+字典模式下，键为选项标识（任意类型），值为显示文本，返回用户选择的键：
 
 ```python
 from funcguard import ask_select
@@ -101,15 +104,36 @@ count = ask_select(
     timeout=10
 )
 print(f"查询 {count} 条数据")
+```
 
+#### 列表模式
+列表模式下，元素即为选项值，返回用户选中的元素：
+
+```python
+from funcguard import ask_select
+
+# 使用列表 - 返回选中的元素值
+env = ask_select(
+    options=["开发环境", "测试环境", "生产环境"],
+    default_key="开发环境",
+    prompt="请选择部署环境",
+    timeout=10
+)
+print(f"当前环境: {env}")  # 直接返回 "开发环境"、"测试环境" 或 "生产环境"
+```
+
+#### 无超时模式
+设置 `timeout=None` 可以禁用超时，一直等待用户输入：
+
+```python
 # 无超时模式 - 一直等待用户输入
-count = ask_select(
-    options={10: "10条", 50: "50条", 100: "100条"},
-    default_key=50,
-    prompt="查询数量",
+result = ask_select(
+    options={"save": "保存", "discard": "放弃", "cancel": "取消"},
+    default_key="cancel",
+    prompt="文件已修改，请选择操作",
     timeout=None
 )
-print(f"查询 {count} 条数据")
+print(f"用户选择: {result}")
 ```
 
 ### HTTP请求
