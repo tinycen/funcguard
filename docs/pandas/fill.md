@@ -51,3 +51,14 @@ df = round_columns(df, ['price', 'discount'], 2)
 **注意事项：**
 - 只有数值类型的列才能进行四舍五入操作
 - 非数值类型的列会抛出 TypeError 异常
+- 当 `decimal_places` 为 0 时，结果列会自动转换为 `Int64`（可空整数）类型
+- `decimal.Decimal` 类型在 pandas 中以 `object` dtype 存储，不被视为数值类型，直接调用会抛出 `TypeError`，需先手动转换为 `float` 类型：
+
+```python
+from decimal import Decimal
+
+# 先将 Decimal 列转换为 float
+df['price'] = df['price'].astype(float)
+# 再调用 round_columns
+df = round_columns(df, ['price'], 0)
+```
