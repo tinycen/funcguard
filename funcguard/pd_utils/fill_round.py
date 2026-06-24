@@ -24,6 +24,9 @@ def fill_na(
 
     返回：
     - pd.DataFrame：替换空值后的DataFrame。
+
+    注意：本函数直接修改传入的 DataFrame，不返回副本。如需保留原数据，
+    请在调用前使用 df.copy()。
     """
     _is_numeric_fill = isinstance(fill_value, (int, float))
 

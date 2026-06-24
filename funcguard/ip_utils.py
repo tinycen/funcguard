@@ -51,7 +51,7 @@ def get_public_ip():
                     # 验证是否为有效的IP地址格式
                     if is_valid_ip(ip):
                         return ip
-            except:
+            except Exception:
                 continue
                 
         return None
@@ -80,7 +80,7 @@ def is_valid_ip(ip_string):
                 return False
                 
         return True
-    except:
+    except Exception:
         return False
 
 

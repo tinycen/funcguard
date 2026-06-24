@@ -188,14 +188,14 @@ def convert_decimal(
             continue
         if isinstance( df.at[first_non_null, column], Decimal ):  # pyright: ignore[reportArgumentType]
             # 根据指定的类型进行转换
-            target_type = column_types[column]
-            if target_type == "int":
+            col_target_type = column_types[column]
+            if col_target_type == "int":
                 df[column] = df[column].astype(int)
-            elif target_type == "float":
+            elif col_target_type == "float":
                 df[column] = df[column].astype(float)
                 if decimal_places is not None:
                     df[column] = df[column].round(decimal_places)
-            elif target_type == "auto":
+            elif col_target_type == "auto":
                 df[column] = convert_numeric_series(df[column], decimal_places)
 
     return df

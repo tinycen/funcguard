@@ -15,6 +15,9 @@ def print_progress(idx: int, total: int, message: str = "") -> None:
     :param message: 额外消息，默认为空字符串
     """
     # 计算当前进度百分比（0-100）
+    if total <= 0:
+        print(f"警告: total 必须大于 0（当前值: {total}）")
+        return
     percent = int(idx / total * 100)
     
     # 构建进度条：

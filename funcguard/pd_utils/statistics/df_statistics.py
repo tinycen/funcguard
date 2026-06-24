@@ -39,9 +39,13 @@ class DataFrameStatistics:
     # 重置 true_mask 和 false_mask
     def _reset_base_masks(self):
         """重置基础掩码为全True和全False"""
-        self._true_mask = pd.Series([True] * self._length, index=self._index)
-        self._false_mask = pd.Series([False] * self._length, index=self._index)
+        self._true_mask = pd.Series([True] * len(self._df), index=self._df.index)
+        self._false_mask = pd.Series([False] * len(self._df), index=self._df.index)
 
+    def _ensure_masks_valid(self):
+        """如果 DataFrame 发生变化，重新生成基础掩码"""
+        if self._true_mask is not None and len(self._true_mask) != len(self._df):
+            self._reset_base_masks()
 
     def build_base_mask(self, conditions: List[Tuple], logic: str = "and",
                        true_mask: Optional[pd.Series] = None,
@@ -58,6 +62,7 @@ class DataFrameStatistics:
         返回：
         - pd.Series：布尔掩码，True表示符合条件的行
         """
+        self._ensure_masks_valid()
         # 如果没有提供外部掩码，使用内部缓存的掩码
         if true_mask is None:
             true_mask = self._true_mask
@@ -96,6 +101,7 @@ class DataFrameStatistics:
         返回：
         - int：符合条件的数量
         """
+        self._ensure_masks_valid()
         # 如果没有提供外部掩码，使用内部缓存的掩码
         if true_mask is None:
             true_mask = self._true_mask
@@ -147,6 +153,7 @@ class DataFrameStatistics:
             >>> stats.value_counts("status", conditions=[("age", ">", 18)])
             {'active': 120, 'inactive': 30}
         """
+        self._ensure_masks_valid()
         # 如果没有提供外部掩码，使用内部缓存的掩码
         if true_mask is None:
             true_mask = self._true_mask
@@ -198,6 +205,7 @@ class DataFrameStatistics:
             >>> stats.group_agg("category", "amount", "sum", sort="desc")
             {'B': 2000, 'C': 1500, 'A': 1000}
         """
+        self._ensure_masks_valid()
         # 如果没有提供外部掩码，使用内部缓存的掩码
         if true_mask is None:
             true_mask = self._true_mask

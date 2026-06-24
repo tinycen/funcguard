@@ -42,7 +42,7 @@ def md5_hash(*texts: str, encoding: str = "utf-8") -> str:
 
 
 # 生成 base64 格式的 Basic Auth 字符串
-def encode_basic_auth(username, password):
+def encode_basic_auth(username: str, password: str) -> str:
     # 将 Username 和 Password 拼接成字符串
     auth_str = f"{username}:{password}"
 
@@ -189,7 +189,12 @@ def send_request(
 
     # ---------- 结果处理 ----------
     if return_type == "json":
-        result = response.json()
+        try:
+            result = response.json()
+        except (json.JSONDecodeError, ValueError) as e:
+            raise ValueError(
+                f"响应内容不是有效的 JSON 格式 (status={response.status_code}): {e}"
+            ) from e
         if request_log.save_path:
             res_log = {}
             save_fields = [
@@ -247,7 +252,7 @@ def check_url_valid(
             response = curl_cffi_request(
                 "HEAD", url, req_kwargs, curl_fallback_impersonate, auto_retry
             )
-            if response.status_code == 200: # type: ignore
+            if response is not None and response.status_code == 200: # type: ignore
                 return True
         except Exception:
             pass
