@@ -35,8 +35,8 @@ def _is_not_empty(x):
         if pd.isna(x):
             return False
     except ValueError:
-        # pd.isna() 返回数组或产生歧义时，说明有值
-        return True
+        # pd.isna() 失败说明 x 不是可空的标量值，应视为有值
+        pass
     return True
 
 

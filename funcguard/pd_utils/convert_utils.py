@@ -134,6 +134,14 @@ def convert_columns(df: pd.DataFrame, columns: Dict[str, str], decimal_places: O
     return df
 
 
+def _has_decimal(df: pd.DataFrame, column: str) -> bool:
+    """检查列中是否存在 Decimal 类型值"""
+    for val in df[column]:
+        if pd.notna(val) and isinstance(val, Decimal):
+            return True
+    return False
+
+
 def convert_decimal(
     df: pd.DataFrame,
     columns: Union[List[str], Dict[str, str], None] = None,
@@ -182,11 +190,8 @@ def convert_decimal(
         # 检查列是否存在且为object类型 (只有object类型列才可能包含Decimal)
         if column not in df.columns or df[column].dtype != object:
             continue
-        # 检查列中的第一个非空值是否是Decimal类型
-        first_non_null = df[column].first_valid_index()
-        if first_non_null is None:
-            continue
-        if isinstance( df.at[first_non_null, column], Decimal ):  # pyright: ignore[reportArgumentType]
+        # 检查列中是否存在 Decimal 类型值
+        if _has_decimal(df, column):
             # 根据指定的类型进行转换
             col_target_type = column_types[column]
             if col_target_type == "int":
