@@ -124,66 +124,46 @@ result, seconds = time_monitor(print_mode=0, func=my_function, 1, 2)
 
 ## get_now - 获取当前时间
 
-获取当前时间，支持多种时区。
+获取当前时间，支持多种时区和输出格式。
 
 ```python
 from funcguard import get_now
 
-# 获取本地时间（不含时区信息）
+# 获取本地时间（不含时区信息，默认行为）
 now = get_now(from_timezone="local")
 
-# 获取UTC时间（含时区信息）
+# 获取 UTC 时间（含时区信息）
 now = get_now(from_timezone="utc", remove_tzinfo=False)
 
 # 获取北京时间（含时区信息）
-now = get_now(from_timezone="beijing", remove_tzinfo=False)
+now = get_now(from_timezone="bj", remove_tzinfo=False)
+
+# 获取毫秒级时间戳
+ts = get_now(fmt="millis")  # 例如：1710504000000
+
+# 获取 ISO 8601 格式字符串
+iso_time = get_now(fmt="iso")  # 例如：2024-03-15T14:00:00
+
+# UTC 时区的 ISO 格式自动带 Z 后缀（Z = Zulu time = UTC+0）
+utc_iso = get_now(from_timezone="utc", fmt="iso")  # 例如：2024-03-15T06:00:00Z
+
+# 获取普通格式化字符串
+str_time = get_now(fmt="str")  # 例如：2024-03-15 14:00:00
 ```
 
 **参数说明：**
 - `from_timezone`: 时区选择
   - `"local"`: 本地时间（tz-naive，不含时区信息）
   - `"utc"`: UTC时间（tz-aware，包含UTC时区信息）
-  - `"beijing"`: 北京时间（tz-aware，包含UTC+8时区信息）
-- `remove_tzinfo`: 是否移除时区信息，默认为 `True`
-
+  - `"bj"`: 北京时间（tz-aware，包含UTC+8时区信息）
+- `remove_tzinfo`: 是否移除时区信息，默认为 `True`（仅 `fmt=None` 时生效，影响返回的 datetime 对象）
+- `fmt`: 输出格式，默认为 `None`（返回 datetime 对象）
+  - `None`: 返回 datetime 对象
+  - `"millis"`: 返回毫秒级时间戳（int）
+  - `"iso"`: 返回 ISO 8601 格式字符串；当 `from_timezone="utc"` 时自动追加 Z 后缀
+  - `"str"`: 返回普通字符串，格式为 `%Y-%m-%d %H:%M:%S`
 **返回值：**
-- `datetime` 对象
-
----
-
-## generate_timestamp - 获取时间戳
-
-获取当前时间戳或格式化时间字符串。
-
-```python
-from funcguard import generate_timestamp
-
-# 获取毫秒级时间戳（默认）
-ts = generate_timestamp()  # 例如：1710504000000
-
-# 获取ISO 8601格式时间
-iso_time = generate_timestamp(fmt="iso")  # 例如：2024-03-15T14:00:00
-
-# 获取UTC时间并带Z标志
-utc_iso = generate_timestamp(from_timezone="utc", fmt="iso", utc_z=True)  # 例如：2024-03-15T06:00:00Z
-
-# 获取格式化字符串
-str_time = generate_timestamp(fmt="str")  # 例如：2024-03-15 14:00:00
-```
-
-**参数说明：**
-- `from_timezone`: 时区选择
-  - `"local"`: 本地时间的 naive 对象（不含时区信息）
-  - `"utc"`: UTC时间的 aware 对象（包含UTC时区信息）
-  - `"beijing"`: 北京时间的 aware 对象（包含UTC+8时区信息）
-- `fmt`: 格式选择
-  - `"millis"`: 毫秒级时间戳（默认）
-  - `"iso"`: ISO 8601标准格式
-  - `"str"`: 字符串格式 `%Y-%m-%d %H:%M:%S`
-- `utc_z`: 是否在UTC的iso格式后追加Z标志，仅在 `fmt="iso"` 且时区为UTC时有效
-
-**返回值：**
-- 根据 `fmt` 返回对应值（`int` 或 `str`）
+- `datetime` 对象 | `int`（毫秒时间戳） | `str`（格式化字符串）
 
 ---
 
