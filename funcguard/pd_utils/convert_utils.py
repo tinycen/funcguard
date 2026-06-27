@@ -138,6 +138,41 @@ def convert_numeric_series(series: pd.Series, decimal_places: Optional[int] = No
     return series
 
 
+def _resolve_columns_decimal_places(
+    columns: Union[List[str], Dict[str, Optional[int]]],
+    decimal_places: Optional[int],
+) -> tuple[List[str], Dict[str, Optional[int]]]:
+    """
+    解析 columns 参数，返回目标列列表和每列对应的 decimal_places 字典。
+
+    参数：
+    - columns: 列名列表或字典
+    - decimal_places: 默认的 decimal_places 值
+
+    返回：
+    - target_columns: 目标列列表
+    - column_decimal_places: 每列对应的 decimal_places 字典
+    """
+    if isinstance(columns, list):
+        target_columns = columns
+        column_decimal_places = {col: decimal_places for col in target_columns}
+    elif isinstance(columns, dict):
+        for col, val in columns.items():
+            if val is not None and not isinstance(val, int):
+                raise TypeError(
+                    f"列 '{col}' 的 decimal_places 必须是整数或 None，得到 {type(val).__name__}"
+                )
+        target_columns = list(columns.keys())
+        column_decimal_places = {col: val for col, val in columns.items()}
+    else:
+        raise TypeError(
+            f"columns 参数类型不支持，期望 List[str] 或 Dict[str, Optional[int]]，"
+            f"得到 {type(columns).__name__}"
+        )
+
+    return target_columns, column_decimal_places
+
+
 def round_columns(
     df: pd.DataFrame,
     columns: Union[List[str], Dict[str, Optional[int]]],
@@ -157,23 +192,9 @@ def round_columns(
     返回：
     - pd.DataFrame：四舍五入后的DataFrame。
     """
-    if isinstance(columns, list):
-        target_columns = columns
-        column_decimal_places = {col: decimal_places for col in target_columns}
-    elif isinstance(columns, dict):
-        for col, val in columns.items():
-            if val is not None and not isinstance(val, int):
-                raise TypeError(
-                    f"列 '{col}' 的 decimal_places 必须是整数或 None，得到 {type(val).__name__}"
-                )
-        target_columns = list(columns.keys())
-        column_decimal_places = {col: val for col, val in columns.items()}
-    else:
-        raise TypeError(
-            f"columns 参数类型不支持，期望 List[str] 或 Dict[str, Optional[int]]，"
-            f"得到 {type(columns).__name__}"
-        )
-
+    target_columns, column_decimal_places = _resolve_columns_decimal_places(
+        columns, decimal_places
+    )
     for column in target_columns:
         if column in df.columns:
             col_dp = column_decimal_places.get(column, decimal_places)
@@ -215,19 +236,10 @@ def convert_decimal(
         # 检测所有列
         target_columns = df.columns.tolist()
         column_decimal_places = {col: decimal_places for col in target_columns}
-    elif isinstance(columns, list):
-        # 检测指定列
-        target_columns = columns
-        column_decimal_places = {col: decimal_places for col in target_columns}
-    elif isinstance(columns, dict):
-        # 使用字典指定的每列独立的decimal_places
-        for col, val in columns.items():
-            if val is not None and not isinstance(val, int):
-                raise TypeError(
-                    f"列 '{col}' 的 decimal_places 必须是整数或 None，得到 {type(val).__name__}"
-                )
-        target_columns = list(columns.keys())
-        column_decimal_places = {col: val for col, val in columns.items()}
+    else:
+        target_columns, column_decimal_places = _resolve_columns_decimal_places(
+            columns, decimal_places
+        )
 
     for column in target_columns:
         # 检查列是否存在且为object类型 (只有object类型列才可能包含Decimal)
