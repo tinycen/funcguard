@@ -64,24 +64,3 @@ def fill_na(
                 column_dtype = df[column].dtype
                 raise TypeError(f"处理列 '{column}' (类型: {column_dtype}) 时出错: {e}") from e
     return df
-
-
-def round_columns(
-    df: pd.DataFrame, columns: List[str], decimal_places: int = 0
-) -> pd.DataFrame:
-    """
-    对DataFrame中指定列进行四舍五入操作。
-    自动支持 Decimal 类型列和 NaN 值。
-
-    参数：
-    - df (pd.DataFrame)：输入的DataFrame。
-    - columns (List[str])：要进行四舍五入的列名列表。
-    - decimal_places (int, optional)：保留的小数位数，默认为0。
-
-    返回：
-    - pd.DataFrame：四舍五入后的DataFrame。
-    """
-    for column in columns:
-        if column in df.columns:
-            df[column] = convert_numeric_series(df[column], decimal_places)
-    return df

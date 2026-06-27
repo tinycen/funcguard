@@ -117,6 +117,27 @@ df = round_columns(df, ['price', 'discount'], 2)
 - 当 `decimal_places` 为 0 时，结果列会自动转换为 Int64（可空整数）类型
 - 内部通过 `convert_numeric_series` 实现，自动检测 int/float
 
+### round_columns 与 convert_decimal 的区别
+
+| 函数 | 触发条件 | 典型场景 |
+|------|----------|----------|
+| `round_columns` | **无条件**对指定列执行四舍五入 | 需要对列统一精度，不关心列中是否包含 `Decimal` |
+| `convert_decimal` | 仅当列中存在 `Decimal` 实例时才转换 | 只想处理包含 `Decimal` 对象的列，其他列保持原样 |
+
+```python
+from decimal import Decimal
+import pandas as pd
+from funcguard.pd_utils import round_columns, convert_decimal
+
+# round_columns：对指定列无条件四舍五入
+df = pd.DataFrame({'price': [3.14159, 2.71828], 'count': [1, 2]})
+df = round_columns(df, ['price'], 2)  # 对 price 列执行 round，count 列不受影响
+
+# convert_decimal：只转换包含 Decimal 的列
+df = pd.DataFrame({'price': [Decimal('3.14159'), Decimal('2.71828')], 'count': [1, 2]})
+df = convert_decimal(df, ['price', 'count'])  # 仅 price 列包含 Decimal，会被转换；count 列无 Decimal，保持原样
+```
+
 ## convert_str_datetime - 字符串转日期时间
 
 将字符串列转换为 datetime 类型。
