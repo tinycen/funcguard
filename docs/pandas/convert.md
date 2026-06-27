@@ -92,6 +92,31 @@ df = convert_decimal(df, ['salary'], decimal_places=2)
 - `columns`: 列名列表、字典（键为列名，值为该列的decimal_places）或 None（检测所有列）
 - `decimal_places`: 保留的小数位数，默认为 None（不限制）。当为 0 时，round后自动转为 Int64 类型
 
+## round_columns - 四舍五入
+
+对 DataFrame 中指定列进行四舍五入操作，自动支持 Decimal 类型列和 NaN 值。
+
+```python
+from funcguard.pd_utils import round_columns
+
+# 对单列进行四舍五入，保留整数
+df = round_columns(df, ['price'], 0)
+
+# 对多列进行四舍五入，保留 2 位小数
+df = round_columns(df, ['price', 'discount'], 2)
+```
+
+**参数说明：**
+- `df`: 输入的 DataFrame
+- `columns`: 要进行四舍五入的列名列表
+- `decimal_places`: 保留的小数位数，默认为 0
+
+**特性说明：**
+- 自动支持 Decimal 类型列，无需手动转换
+- NaN 值会被保留，不会报错
+- 当 `decimal_places` 为 0 时，结果列会自动转换为 Int64（可空整数）类型
+- 内部通过 `convert_numeric_series` 实现，自动检测 int/float
+
 ## convert_str_datetime - 字符串转日期时间
 
 将字符串列转换为 datetime 类型。

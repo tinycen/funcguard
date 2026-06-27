@@ -1,5 +1,5 @@
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype, is_numeric_dtype
+from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype
 from typing import Union, List, Any, Dict, Optional
 from .convert_utils import convert_numeric_series
 
@@ -71,6 +71,7 @@ def round_columns(
 ) -> pd.DataFrame:
     """
     对DataFrame中指定列进行四舍五入操作。
+    自动支持 Decimal 类型列和 NaN 值。
 
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
@@ -79,17 +80,8 @@ def round_columns(
 
     返回：
     - pd.DataFrame：四舍五入后的DataFrame。
-
-    注意：
-    - 当 decimal_places 为 0 时，结果列会自动转换为 Int64（可空整数）类型。
-    - decimal.Decimal 类型在 pandas 中以 object dtype 存储，不被视为数值类型，
-      调用本函数会抛出 TypeError。需先手动将其转换为 float 类型再调用本函数。
     """
     for column in columns:
         if column in df.columns:
-            if not is_numeric_dtype(df[column]):
-                raise TypeError(f"列 '{column}' 不是数值类型，无法执行四舍五入操作")
-            df[column] = df[column].round(decimal_places)
-            if decimal_places == 0:
-                df[column] = df[column].astype('Int64')
+            df[column] = convert_numeric_series(df[column], decimal_places)
     return df

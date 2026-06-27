@@ -31,7 +31,7 @@ df = fill_na(df, [], 0.0, decimal_places=2)  # 对所有列填充 0.0 并保留 
 
 ## round_columns - 四舍五入
 
-对 DataFrame 中指定列进行四舍五入操作，支持指定保留的小数位数。
+对 DataFrame 中指定列进行四舍五入操作，自动支持 Decimal 类型列和 NaN 值。
 
 ```python
 from funcguard.pd_utils import round_columns
@@ -48,17 +48,8 @@ df = round_columns(df, ['price', 'discount'], 2)
 - `columns`: 要进行四舍五入的列名列表
 - `decimal_places`: 保留的小数位数，默认为 0
 
-**注意事项：**
-- 只有数值类型的列才能进行四舍五入操作
-- 非数值类型的列会抛出 TypeError 异常
+**特性说明：**
+- 自动支持 Decimal 类型列，无需手动转换
+- NaN 值会被保留，不会报错
 - 当 `decimal_places` 为 0 时，结果列会自动转换为 `Int64`（可空整数）类型
-- `decimal.Decimal` 类型在 pandas 中以 `object` dtype 存储，不被视为数值类型，直接调用会抛出 `TypeError`，需先手动转换为 `float` 类型：
-
-```python
-from decimal import Decimal
-
-# 先将 Decimal 列转换为 float
-df['price'] = df['price'].astype(float)
-# 再调用 round_columns
-df = round_columns(df, ['price'], 0)
-```
+- 内部通过 `convert_numeric_series` 实现，自动检测 int/float
