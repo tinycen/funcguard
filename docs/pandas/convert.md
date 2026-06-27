@@ -104,11 +104,17 @@ df = round_columns(df, ['price'], 0)
 
 # 对多列进行四舍五入，保留 2 位小数
 df = round_columns(df, ['price', 'discount'], 2)
+
+# 为不同列指定不同的 decimal_places
+df = round_columns(df, {
+    'price': 2,    # 保留两位小数
+    'discount': 0  # round后转Int64
+})
 ```
 
 **参数说明：**
 - `df`: 输入的 DataFrame
-- `columns`: 要进行四舍五入的列名列表
+- `columns`: 列名列表或字典（键为列名，值为该列的decimal_places）
 - `decimal_places`: 保留的小数位数，默认为 0
 
 **特性说明：**

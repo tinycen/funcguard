@@ -139,7 +139,9 @@ def convert_numeric_series(series: pd.Series, decimal_places: Optional[int] = No
 
 
 def round_columns(
-    df: pd.DataFrame, columns: List[str], decimal_places: int = 0
+    df: pd.DataFrame,
+    columns: Union[List[str], Dict[str, Optional[int]]],
+    decimal_places: int = 0,
 ) -> pd.DataFrame:
     """
     对DataFrame中指定列进行四舍五入操作。
@@ -147,15 +149,35 @@ def round_columns(
 
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
-    - columns (List[str])：要进行四舍五入的列名列表。
+    - columns (List[str], Dict[str, Optional[int]])：
+        * 如果为List[str]，则对指定列进行四舍五入
+        * 如果为Dict[str, Optional[int]]，则键为列名，值为该列的decimal_places（可选）
     - decimal_places (int, optional)：保留的小数位数，默认为0。
 
     返回：
     - pd.DataFrame：四舍五入后的DataFrame。
     """
-    for column in columns:
+    if isinstance(columns, list):
+        target_columns = columns
+        column_decimal_places = {col: decimal_places for col in target_columns}
+    elif isinstance(columns, dict):
+        for col, val in columns.items():
+            if val is not None and not isinstance(val, int):
+                raise TypeError(
+                    f"列 '{col}' 的 decimal_places 必须是整数或 None，得到 {type(val).__name__}"
+                )
+        target_columns = list(columns.keys())
+        column_decimal_places = {col: val for col, val in columns.items()}
+    else:
+        raise TypeError(
+            f"columns 参数类型不支持，期望 List[str] 或 Dict[str, Optional[int]]，"
+            f"得到 {type(columns).__name__}"
+        )
+
+    for column in target_columns:
         if column in df.columns:
-            df[column] = convert_numeric_series(df[column], decimal_places)
+            col_dp = column_decimal_places.get(column, decimal_places)
+            df[column] = convert_numeric_series(df[column], col_dp)
     return df
 
 
