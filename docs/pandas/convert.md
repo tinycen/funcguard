@@ -45,7 +45,7 @@ df = convert_columns(df, {
 
 ## convert_numeric_series - Series 数值类型转换
 
-将 Series 转换为数值类型，自动检测应该使用 int 还是 float。如果没有小数则转换为 int64，否则保持 float64。
+将 Series 转换为数值类型，自动检测应该使用 int 还是 float。如果没有小数则转换为 Int64（支持NaN），否则保持 float64。
 
 ```python
 from funcguard.pd_utils import convert_numeric_series
@@ -63,33 +63,34 @@ series = convert_numeric_series(df['price'], decimal_places=2)
 
 ## convert_decimal - Decimal 类型转换
 
-检测并转换 DataFrame 中包含 Decimal 类型的字段为指定类型。
+检测并转换 DataFrame 中包含 Decimal 类型的字段为数值类型。
+自动检测：先转为 float，如果没有小数则转为 Int64（支持NaN），否则保持 float。
+当 decimal_places == 0 时，round后自动转为 Int64 类型。
 
 ```python
 from funcguard.pd_utils import convert_decimal
 from decimal import Decimal
 
-# 自动检测所有列，发现 Decimal 时转换为 int
+# 自动检测所有列，Decimal 有小数保持float，无小数转int
 df = convert_decimal(df)
 
-# 指定列转换为 float
-df = convert_decimal(df, ['salary'], 'float')
+# 只检测指定列
+df = convert_decimal(df, ['salary'])
 
-# 为不同列指定不同转换类型
+# 为不同列指定不同的 decimal_places
 df = convert_decimal(df, {
-    'salary': 'float',
-    'tax': 'int'
+    'salary': 2,    # 保留两位小数
+    'tax': 0        # round后转Int64
 })
 
 # 指定小数位数
-df = convert_decimal(df, ['salary'], 'float', decimal_places=2)
+df = convert_decimal(df, ['salary'], decimal_places=2)
 ```
 
 **参数说明：**
 - `df`: 输入的 DataFrame
-- `columns`: 列名列表、字典或 None（检测所有列）
-- `target_type`: 转换类型，支持 'int'、'float'、'auto'，默认为 'int'
-- `decimal_places`: 当 target_type 为 'auto' 或 'float' 时保留的小数位数，默认为 None
+- `columns`: 列名列表、字典（键为列名，值为该列的decimal_places）或 None（检测所有列）
+- `decimal_places`: 保留的小数位数，默认为 None（不限制）。当为 0 时，round后自动转为 Int64 类型
 
 ## convert_str_datetime - 字符串转日期时间
 
