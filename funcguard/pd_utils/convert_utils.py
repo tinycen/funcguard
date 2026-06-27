@@ -10,6 +10,51 @@ from pandas import (
 from .json_utils import json_loads
 
 
+# 数据类型映射常量
+TYPE_MAPPING = {
+    "int": Int64Dtype(),
+    "float": Float64Dtype(),
+    "str": StringDtype(),
+    "bool": BooleanDtype(),
+    "datetime": "datetime64[ns]",  # datetime使用字符串形式
+}
+
+
+def convert_columns(df: pd.DataFrame, columns: Dict[str, str], decimal_places: Optional[int] = None) -> pd.DataFrame:
+    """
+    转换DataFrame中指定列的数据类型。
+
+    参数：
+    - df (pd.DataFrame)：输入的DataFrame。
+    - columns (Dict[str, str])：
+        要转换类型的字典，键为列名，值为目标数据类型。
+        支持的数据类型：'int', 'float', 'str', 'bool', 'datetime'。
+    - decimal_places (int, optional)：当转换为'float'类型时保留的小数位数，默认为None表示不限制
+
+    返回：
+    - pd.DataFrame：列类型转换后的DataFrame。
+    """
+    for column, target_type in columns.items():
+        if column in df.columns and target_type in TYPE_MAPPING:
+            try:
+                if target_type == "datetime":
+                    df[column] = pd.to_datetime(df[column], errors="coerce")
+                elif target_type == "float":
+                    df[column] = df[column].astype(
+                        TYPE_MAPPING[target_type]
+                    )  # pyright: ignore[reportArgumentType]
+                    if decimal_places is not None:
+                        df[column] = df[column].round(decimal_places)
+                else:
+                    df[column] = df[column].astype(
+                        TYPE_MAPPING[target_type]
+                    )  # pyright: ignore[reportArgumentType]
+            except (ValueError, TypeError):
+                # 如果转换失败，保持原类型
+                pass
+    return df
+
+
 def convert_series(
     data: pd.Series,
     return_type: Literal["dict", "df", "series"] = "dict"
@@ -50,16 +95,6 @@ def convert_series(
         return data.to_frame()
     else:  # "series"
         return data
-
-
-# 数据类型映射常量
-TYPE_MAPPING = {
-    "int": Int64Dtype(),
-    "float": Float64Dtype(),
-    "str": StringDtype(),
-    "bool": BooleanDtype(),
-    "datetime": "datetime64[ns]",  # datetime使用字符串形式
-}
 
 
 def convert_numeric_series(series: pd.Series, decimal_places: Optional[int] = None) -> pd.Series:
@@ -103,38 +138,24 @@ def convert_numeric_series(series: pd.Series, decimal_places: Optional[int] = No
     return series
 
 
-def convert_columns(df: pd.DataFrame, columns: Dict[str, str], decimal_places: Optional[int] = None) -> pd.DataFrame:
+def round_columns(
+    df: pd.DataFrame, columns: List[str], decimal_places: int = 0
+) -> pd.DataFrame:
     """
-    转换DataFrame中指定列的数据类型。
+    对DataFrame中指定列进行四舍五入操作。
+    自动支持 Decimal 类型列和 NaN 值。
 
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
-    - columns (Dict[str, str])：
-        要转换类型的字典，键为列名，值为目标数据类型。
-        支持的数据类型：'int', 'float', 'str', 'bool', 'datetime'。
-    - decimal_places (int, optional)：当转换为'float'类型时保留的小数位数，默认为None表示不限制
+    - columns (List[str])：要进行四舍五入的列名列表。
+    - decimal_places (int, optional)：保留的小数位数，默认为0。
 
     返回：
-    - pd.DataFrame：列类型转换后的DataFrame。
+    - pd.DataFrame：四舍五入后的DataFrame。
     """
-    for column, target_type in columns.items():
-        if column in df.columns and target_type in TYPE_MAPPING:
-            try:
-                if target_type == "datetime":
-                    df[column] = pd.to_datetime(df[column], errors="coerce")
-                elif target_type == "float":
-                    df[column] = df[column].astype(
-                        TYPE_MAPPING[target_type]
-                    )  # pyright: ignore[reportArgumentType]
-                    if decimal_places is not None:
-                        df[column] = df[column].round(decimal_places)
-                else:
-                    df[column] = df[column].astype(
-                        TYPE_MAPPING[target_type]
-                    )  # pyright: ignore[reportArgumentType]
-            except (ValueError, TypeError):
-                # 如果转换失败，保持原类型
-                pass
+    for column in columns:
+        if column in df.columns:
+            df[column] = convert_numeric_series(df[column], decimal_places)
     return df
 
 
@@ -290,23 +311,3 @@ def convert_str_datetime(
 
     return df
 
-
-def round_columns(
-    df: pd.DataFrame, columns: List[str], decimal_places: int = 0
-) -> pd.DataFrame:
-    """
-    对DataFrame中指定列进行四舍五入操作。
-    自动支持 Decimal 类型列和 NaN 值。
-
-    参数：
-    - df (pd.DataFrame)：输入的DataFrame。
-    - columns (List[str])：要进行四舍五入的列名列表。
-    - decimal_places (int, optional)：保留的小数位数，默认为0。
-
-    返回：
-    - pd.DataFrame：四舍五入后的DataFrame。
-    """
-    for column in columns:
-        if column in df.columns:
-            df[column] = convert_numeric_series(df[column], decimal_places)
-    return df
