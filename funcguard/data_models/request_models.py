@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 
-from typing import Optional
 
 @dataclass
 class RequestLog:
-    save_method: Optional[bool] = True
-    save_url: Optional[bool] = True
-    save_headers: Optional[bool] = True
-    save_body: Optional[bool] = True
-    save_response: Optional[bool] = True
-    save_path: Optional[str] = ""
+    save_method: bool | None = True
+    save_url: bool | None = True
+    save_headers: bool | None = True
+    save_body: bool | None = True
+    save_response: bool | None = True
+    save_path: str | None = ""

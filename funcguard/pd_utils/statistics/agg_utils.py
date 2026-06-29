@@ -6,7 +6,7 @@ sum、mean、max、min、count、median、std、var等聚合计算。
 """
 
 import pandas as pd
-from typing import Any, Dict, Optional, Union, List, Tuple, Literal
+from typing import Any, Literal
 from .mask_utils import build_single_mask, build_base_mask
 from ..convert_utils import convert_series
 
@@ -16,13 +16,13 @@ def group_agg(
     group_col: str,
     agg_col: str,
     agg_func: str = "sum",
-    sort: Optional[str] = None,
-    conditions: Optional[Union[Tuple, List[Tuple]]] = None,
+    sort: str | None = None,
+    conditions: tuple | list[tuple] | None = None,
     logic: str = "and",
-    true_mask: Optional[pd.Series] = None,
-    false_mask: Optional[pd.Series] = None,
+    true_mask: pd.Series | None = None,
+    false_mask: pd.Series | None = None,
     return_type: Literal["dict", "df", "series"] = "dict"
-) -> Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]:
+) -> dict[Any, int | float] | pd.DataFrame | pd.Series:
     """
     按指定列分组，对另一列进行聚合统计。
 

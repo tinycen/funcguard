@@ -4,7 +4,7 @@ import hashlib
 import requests
 from curl_cffi import requests as cffi_requests
 
-from typing import Optional, Dict, Any, Union, Literal
+from typing import Any, Literal
 from .core import retry_function
 from .data_models import RequestLog
 
@@ -14,7 +14,7 @@ HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE",
 
 # impersonate 名称 → 对应真实浏览器 User-Agent 映射
 # 只维护 curl_cffi 支持的主流标识
-_IMPERSONATE_UA_MAP: Dict[str, str] = {
+_IMPERSONATE_UA_MAP: dict[str, str] = {
     "chrome123": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
     "chrome124": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "safari15_5": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15",
@@ -54,9 +54,9 @@ def encode_basic_auth(username: str, password: str) -> str:
 def curl_cffi_request(
     method: HttpMethod,
     url: str,
-    req_kwargs: Dict[str, Any],
+    req_kwargs: dict[str, Any],
     impersonate: str,
-    auto_retry: Optional[Dict[str, Any]] = None,
+    auto_retry: dict[str, Any] | None = None,
 ) -> Any:
     """
     使用 curl_cffi 发起请求的内部封装。
@@ -105,16 +105,16 @@ def curl_cffi_request(
 def send_request(
     method: HttpMethod,
     url: str,
-    headers: Optional[Dict[str, str]] = None,
-    data: Optional[Any] = None,
+    headers: dict[str, str] | None = None,
+    data: Any | None = None,
     return_type: str = "json",
     timeout: int = 60,
-    auto_retry: Optional[Dict[str, Any]] = None,
+    auto_retry: dict[str, Any] | None = None,
     request_log: RequestLog = RequestLog(),
     curl_fallback: bool = False,
     curl_fallback_impersonate: str = _DEFAULT_IMPERSONATE,
     stream: bool = False,
-) -> Union[Dict, str, requests.Response]:
+) -> dict | str | requests.Response:
     """
     发送HTTP请求的通用函数
 
@@ -221,7 +221,7 @@ def send_request(
 # 检查URL是否有效
 def check_url_valid(
     url: str,
-    headers: Optional[Dict[str, str]] = None,
+    headers: dict[str, str] | None = None,
     max_retries: int = 3,
     curl_fallback: bool = False,
     curl_fallback_impersonate: str = _DEFAULT_IMPERSONATE,

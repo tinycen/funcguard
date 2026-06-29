@@ -1,14 +1,14 @@
 import pandas as pd
 from datetime import datetime
 from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype
-from typing import Union, List, Any, Optional
+from typing import Any
 
 
 # 单位 -> 对应秒数
 _UNIT_SECONDS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 
 
-def _resolve_date(df: pd.DataFrame, date: Union[str, datetime]) -> pd.Series:
+def _resolve_date(df: pd.DataFrame, date: str | datetime) -> pd.Series:
     """将列名或 datetime 统一转换为 pd.Series"""
     if isinstance(date, datetime):
         return pd.Series([date] * len(df), index=df.index)
@@ -21,7 +21,7 @@ def _resolve_date(df: pd.DataFrame, date: Union[str, datetime]) -> pd.Series:
 
 
 def fill_nat(
-    df: pd.DataFrame, columns: Union[List[str], str], fill_value: Any = ""
+    df: pd.DataFrame, columns: list[str] | str, fill_value: Any = ""
 ) -> pd.DataFrame:
     """将指定列的 NaT（Datetime/Timedelta）替换为空字符串"""
 
@@ -45,11 +45,11 @@ def fill_nat(
 def cal_date_diff(
     df: pd.DataFrame,
     target_column: str,
-    old_date: Union[str, datetime],
-    new_date: Union[str, datetime],
+    old_date: str | datetime,
+    new_date: str | datetime,
     unit: str = "h",
     decimal_places: int = 1,
-    nat: Optional[int] = None
+    nat: int | None = None
 ) -> pd.DataFrame:
     """
     计算DataFrame中两列日期的时间差，并将结果填充到指定列。

@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-from typing import List, Tuple, Optional
-
 
 
 def _is_empty(x):
@@ -40,7 +38,7 @@ def _is_not_empty(x):
     return True
 
 
-def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
+def build_single_mask(df: pd.DataFrame, condition: tuple) -> pd.Series:
     """
     构建单个掩码，用于简单条件判断
 
@@ -121,10 +119,10 @@ def build_single_mask(df: pd.DataFrame, condition: Tuple) -> pd.Series:
 
 def build_base_mask(
     df: pd.DataFrame,
-    conditions: List[Tuple],
+    conditions: list[tuple],
     logic: str = "and",
-    true_mask: Optional[pd.Series] = None,
-    false_mask: Optional[pd.Series] = None,
+    true_mask: pd.Series | None = None,
+    false_mask: pd.Series | None = None,
 ) -> pd.Series:
     """
     构建基础查询条件掩码
@@ -169,7 +167,7 @@ def build_base_mask(
     return mask
 
 
-def combine_masks(masks: List[pd.Series], logic: str = "and") -> pd.Series:
+def combine_masks(masks: list[pd.Series], logic: str = "and") -> pd.Series:
     """
     合并多个布尔掩码，支持复杂的嵌套逻辑组合
 

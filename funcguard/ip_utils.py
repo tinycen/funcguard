@@ -53,7 +53,8 @@ def get_public_ip():
                         return ip
             except Exception:
                 continue
-                
+        
+        print("警告: 所有公网IP查询服务均失败，请检查网络连接")
         return None
     except Exception as e:
         print(f"获取公网IP地址失败: {e}")

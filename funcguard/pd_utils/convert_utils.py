@@ -1,6 +1,6 @@
 import pandas as pd
 from decimal import Decimal
-from typing import Union, List, Dict, Any, Optional, Literal
+from typing import Any, Literal
 from pandas import (
     Int64Dtype,
     Float64Dtype,
@@ -20,7 +20,7 @@ TYPE_MAPPING = {
 }
 
 
-def convert_columns(df: pd.DataFrame, columns: Dict[str, str], decimal_places: Optional[int] = None) -> pd.DataFrame:
+def convert_columns(df: pd.DataFrame, columns: dict[str, str], decimal_places: int | None = None) -> pd.DataFrame:
     """
     转换DataFrame中指定列的数据类型。
 
@@ -58,7 +58,7 @@ def convert_columns(df: pd.DataFrame, columns: Dict[str, str], decimal_places: O
 def convert_series(
     data: pd.Series,
     return_type: Literal["dict", "df", "series"] = "dict"
-) -> Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]:
+) -> dict[Any, int | float] | pd.DataFrame | pd.Series:
     """
     将 pandas Series 格式化为指定的返回类型。
 
@@ -97,7 +97,7 @@ def convert_series(
         return data
 
 
-def convert_numeric_series(series: pd.Series, decimal_places: Optional[int] = None) -> pd.Series:
+def convert_numeric_series(series: pd.Series, decimal_places: int | None = None) -> pd.Series:
     """
     将Series转换为数值类型，并自动检测应该使用 int 还是 float。
     当 decimal_places == 0 时，round后自动转为Int64类型。
@@ -139,9 +139,9 @@ def convert_numeric_series(series: pd.Series, decimal_places: Optional[int] = No
 
 
 def _resolve_columns_decimal_places(
-    columns: Union[List[str], Dict[str, Optional[int]]],
-    decimal_places: Optional[int],
-) -> tuple[List[str], Dict[str, Optional[int]]]:
+    columns: list[str] | dict[str, int | None],
+    decimal_places: int | None,
+) -> tuple[list[str], dict[str, int | None]]:
     """
     解析 columns 参数，返回目标列列表和每列对应的 decimal_places 字典。
 
@@ -175,7 +175,7 @@ def _resolve_columns_decimal_places(
 
 def round_columns(
     df: pd.DataFrame,
-    columns: Union[List[str], Dict[str, Optional[int]]],
+    columns: list[str] | dict[str, int | None],
     decimal_places: int = 0,
 ) -> pd.DataFrame:
     """
@@ -212,8 +212,8 @@ def _has_decimal(df: pd.DataFrame, column: str) -> bool:
 
 def convert_decimal(
     df: pd.DataFrame,
-    columns: Union[List[str], Dict[str, Optional[int]], None] = None,
-    decimal_places: Optional[int] = None,
+    columns: list[str] | dict[str, int | None] | None = None,
+    decimal_places: int | None = None,
 ) -> pd.DataFrame:
     """
     检测DataFrame中是否包含Decimal类型的字段，如果包含则转换为数值类型。
@@ -255,7 +255,7 @@ def convert_decimal(
 
 def load_json(
     df: pd.DataFrame,
-    columns: List[str],
+    columns: list[str],
     empty_to_dict: bool = True,
 ) -> pd.DataFrame:
     """
@@ -280,7 +280,7 @@ def load_json(
 
 def convert_datetime_str(
     df: pd.DataFrame,
-    columns: List[str],
+    columns: list[str],
     include_time: bool = True,
     include_seconds: bool = True,
     fail_fill: Any = "",
@@ -319,29 +319,23 @@ def convert_datetime_str(
 
 
 def convert_str_datetime(
-    df: pd.DataFrame, columns: List[str]
+    df: pd.DataFrame, columns: list[str]
 ) -> pd.DataFrame:
     """
     将DataFrame中指定字符串列转换为datetime类型。
 
     参数：
     - df (pd.DataFrame)：输入的DataFrame。
-    - columns (List[str])：要转换为datetime类型的列名列表。
+    - columns (list[str])：要转换为datetime类型的列名列表。
 
     返回：
     - pd.DataFrame：转换后的DataFrame。
     """
-    def parse_datetime(value: str) -> Union[pd.Timestamp, str]:
-        try:
-            return pd.to_datetime(value)
-        except (ValueError, TypeError):
-            return value
-
     for column in columns:
         if column not in df.columns:
             continue
 
-        df[column] = df[column].apply(parse_datetime)
+        df[column] = pd.to_datetime(df[column], errors="coerce")
 
     return df
 

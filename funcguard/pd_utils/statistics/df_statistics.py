@@ -1,5 +1,6 @@
 import pandas as pd
-from typing import  Any, Dict, List, Tuple, Union, Optional, Mapping, Literal
+from collections.abc import Mapping
+from typing import Any, Literal
 from .mask_utils import build_single_mask as _original_build_single_mask, build_base_mask as _original_build_base_mask, combine_masks
 from .count_utils import count as _original_count, value_counts as _original_value_counts
 from .agg_utils import group_agg as _original_group_agg
@@ -32,9 +33,6 @@ class DataFrameStatistics:
         self._false_mask = None
         self._reset_base_masks()
 
-        # 方法继承
-        self.combine_masks = combine_masks
-
 
     # 重置 true_mask 和 false_mask
     def _reset_base_masks(self):
@@ -47,9 +45,16 @@ class DataFrameStatistics:
         if self._true_mask is not None and len(self._true_mask) != len(self._df):
             self._reset_base_masks()
 
-    def build_base_mask(self, conditions: List[Tuple], logic: str = "and",
-                       true_mask: Optional[pd.Series] = None,
-                       false_mask: Optional[pd.Series] = None) -> pd.Series:
+    def combine_masks(self, masks: list[pd.Series], logic: str = "and") -> pd.Series:
+        """
+        合并多个布尔掩码，支持复杂的嵌套逻辑组合（委托给模块级 combine_masks 函数）
+        """
+        return combine_masks(masks, logic)
+
+
+    def build_base_mask(self, conditions: list[tuple], logic: str = "and",
+                       true_mask: pd.Series | None = None,
+                       false_mask: pd.Series | None = None) -> pd.Series:
         """
         构建基础查询条件掩码，自动使用内部掩码参数
         
@@ -71,7 +76,7 @@ class DataFrameStatistics:
         return _original_build_base_mask(self._df, conditions, logic, true_mask, false_mask)
 
 
-    def build_single_mask(self, condition: Tuple) -> pd.Series:
+    def build_single_mask(self, condition: tuple) -> pd.Series:
         """
         构建单个掩码，用于简单条件判断，自动使用内部DataFrame
 
@@ -86,9 +91,9 @@ class DataFrameStatistics:
         return _original_build_single_mask(self._df, condition)
 
 
-    def count(self, conditions: Union[Tuple, List[Tuple]], logic: str = "and",
-             true_mask: Optional[pd.Series] = None,
-             false_mask: Optional[pd.Series] = None) -> int:
+    def count(self, conditions: tuple | list[tuple], logic: str = "and",
+             true_mask: pd.Series | None = None,
+             false_mask: pd.Series | None = None) -> int:
         """
         统计DataFrame中符合条件的非空值数量，自动使用内部掩码参数
 
@@ -114,14 +119,14 @@ class DataFrameStatistics:
         self,
         column: str,
         mode: str = "count",
-        sort: Optional[str] = None,
+        sort: str | None = None,
         dropna: bool = True,
-        conditions: Optional[Union[Tuple, List[Tuple]]] = None,
+        conditions: tuple | list[tuple] | None = None,
         logic: str = "and",
-        true_mask: Optional[pd.Series] = None,
-        false_mask: Optional[pd.Series] = None,
+        true_mask: pd.Series | None = None,
+        false_mask: pd.Series | None = None,
         return_type: Literal["dict", "df", "series"] = "dict"
-    ) -> Union[Mapping[Any, Union[int, float]], pd.DataFrame, pd.Series]:
+    ) -> Mapping[Any, int | float] | pd.DataFrame | pd.Series:
         """
         统计指定列中不同值的计数数据，自动使用内部掩码参数
 
@@ -170,13 +175,13 @@ class DataFrameStatistics:
         group_col: str,
         agg_col: str,
         agg_func: str = "sum",
-        sort: Optional[str] = None,
-        conditions: Optional[Union[Tuple, List[Tuple]]] = None,
+        sort: str | None = None,
+        conditions: tuple | list[tuple] | None = None,
         logic: str = "and",
-        true_mask: Optional[pd.Series] = None,
-        false_mask: Optional[pd.Series] = None,
+        true_mask: pd.Series | None = None,
+        false_mask: pd.Series | None = None,
         return_type: Literal["dict", "df", "series"] = "dict"
-    ) -> Union[Dict[Any, Union[int, float]], pd.DataFrame, pd.Series]:
+    ) -> dict[Any, int | float] | pd.DataFrame | pd.Series:
         """
         按指定列分组，对另一列进行聚合统计，自动使用内部掩码参数
 
@@ -217,7 +222,7 @@ class DataFrameStatistics:
         )
 
 
-    def dataframe_info(self) -> Dict[str, Any]:
+    def dataframe_info(self) -> dict[str, Any]:
         """获取DataFrame的基本信息"""
         return {
             "shape": self._df.shape,

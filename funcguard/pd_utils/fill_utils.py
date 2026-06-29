@@ -1,14 +1,14 @@
 import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype, is_timedelta64_dtype
-from typing import Union, List, Any, Dict, Optional
+from typing import Any
 from .convert_utils import convert_numeric_series
 
 
 def fill_na(
     df: pd.DataFrame,
-    columns: Union[List[str], Dict[str, Any]],
+    columns: list[str] | dict[str, Any],
     fill_value: Any = "",
-    decimal_places: Optional[int] = None,
+    decimal_places: int | None = None,
 ) -> pd.DataFrame:
     """
     替换DataFrame中指定列的空值为指定值。

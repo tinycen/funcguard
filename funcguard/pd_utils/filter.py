@@ -1,12 +1,11 @@
 import pandas as pd
-from typing import Union, List, Tuple
 
 from .statistics.mask_utils import build_single_mask, build_base_mask, combine_masks
 
 
 def pd_filter(
     df: pd.DataFrame,
-    conditions: Union[Tuple, List[Tuple], List[pd.Series]],
+    conditions: tuple | list[tuple] | list[pd.Series],
     logic: str = "and"
 ) -> pd.DataFrame:
     """

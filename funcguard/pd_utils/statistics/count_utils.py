@@ -1,5 +1,6 @@
 import pandas as pd
-from typing import List, Tuple, Union, Optional, Dict, Any, Mapping, Literal
+from collections.abc import Mapping
+from typing import Any, Literal
 from .mask_utils import build_single_mask, build_base_mask
 from ..convert_utils import convert_series
 
@@ -8,14 +9,14 @@ def value_counts(
     df: pd.DataFrame,
     column: str,
     mode: str = "count",
-    sort: Optional[str] = None,
+    sort: str | None = None,
     dropna: bool = True,
-    conditions: Optional[Union[Tuple, List[Tuple]]] = None,
+    conditions: tuple | list[tuple] | None = None,
     logic: str = "and",
-    true_mask: Optional[pd.Series] = None,
-    false_mask: Optional[pd.Series] = None,
+    true_mask: pd.Series | None = None,
+    false_mask: pd.Series | None = None,
     return_type: Literal["dict", "df", "series"] = "dict"
-) -> Union[Mapping[Any, Union[int, float]], pd.DataFrame, pd.Series]:
+) -> Mapping[Any, int | float] | pd.DataFrame | pd.Series:
     """
     统计DataFrame指定列中不同值的计数数据。
 
@@ -84,10 +85,10 @@ def value_counts(
 
 def count(
     df: pd.DataFrame,
-    conditions: Union[Tuple, List[Tuple]],
+    conditions: tuple | list[tuple],
     logic: str = "and",
-    true_mask: Optional[pd.Series] = None,
-    false_mask: Optional[pd.Series] = None
+    true_mask: pd.Series | None = None,
+    false_mask: pd.Series | None = None
 ) -> int:
     """
     使用int sum 方法，统计DataFrame中符合条件的非空值数量。

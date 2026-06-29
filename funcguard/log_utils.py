@@ -2,7 +2,7 @@
 
 import logging
 import sys
-from typing import Optional, TextIO, Union, cast
+from typing import TextIO, cast
 
 
 class ColoredFormatter(logging.Formatter):
@@ -92,7 +92,7 @@ if not hasattr(logging.Logger, "progress"):
     setattr(logging.Logger, "progress", _logger_progress)
 
 
-def _normalize_level(level: Union[int, str]) -> int:
+def _normalize_level(level: int | str) -> int:
     """
     规范化日志等级。
 
@@ -113,9 +113,9 @@ def _normalize_level(level: Union[int, str]) -> int:
 
 
 def setup_logger(
-    name: Optional[str] = None,
-    level: Union[int, str] = logging.DEBUG,
-    stream: Optional[TextIO] = None,
+    name: str | None = None,
+    level: int | str = logging.DEBUG,
+    stream: TextIO | None = None,
     message_only: bool = False,
 ) -> SuccessLogger:
     """
