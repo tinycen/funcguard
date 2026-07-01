@@ -122,23 +122,23 @@ def setup_logger(
     创建并配置彩色日志输出。
 
     Args:
-        name: logger 的名称，默认 全局共享1个 logger 实例。
+        name: logger 的名称，默认全局共享1个 logger 实例。
             示例：
-            # 在 network.py
-            logger_a = setup_logger("network")
-            logger_a.debug("网络调试信息")
+                # 在 network.py
+                logger_a = setup_logger("network")
+                logger_a.debug("网络调试信息")
 
-            # 在 db.py
-            logger_b = setup_logger("db")
-            logger_b.debug("数据库调试信息")
-        作用:
-            通过不同名称创建的 logger 互不干扰，适合在大型项目中使用。
-                            每个 logger 设置不同的日志级别、格式、输出流等。
-                level: 日志等级。支持 int 或字符串，默认 "DEBUG"。根据等级过滤后交给 handler 输出。
-                    常用等级：DEBUG(10), INFO(20), SUCCESS(25), WARNING(30), PROGRESS(35), ERROR(40), CRITICAL(50)。
-                    字符串支持："DEBUG"、"INFO"、"PROGRESS"、"SUCCESS"、"WARNING"/"WARN"、"ERROR"、"CRITICAL"/"FATAL"（大小写不敏感）。
-            stream: 输出流，默认 sys.stdout。
-            message_only: 是否仅输出日志消息（不包含时间与等级），默认 False。
+                # 在 db.py
+                logger_b = setup_logger("db")
+                logger_b.debug("数据库调试信息")
+
+            作用：通过不同名称创建的 logger 互不干扰，适合在大型项目中使用。
+            每个 logger 设置不同的日志级别、格式、输出流等。
+        level: 日志等级。支持 int 或字符串，默认 "DEBUG"。根据等级过滤后交给 handler 输出。
+            常用等级：DEBUG(10), INFO(20), SUCCESS(25), WARNING(30), PROGRESS(35), ERROR(40), CRITICAL(50)。
+            字符串支持："DEBUG"、"INFO"、"PROGRESS"、"SUCCESS"、"WARNING"/"WARN"、"ERROR"、"CRITICAL"/"FATAL"（大小写不敏感）。
+        stream: 输出流，默认 sys.stdout。
+        message_only: 是否仅输出日志消息（不包含时间与等级），默认 False。
 
     Returns:
         配置完成的 logger。示例:

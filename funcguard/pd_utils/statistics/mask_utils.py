@@ -143,20 +143,26 @@ def build_base_mask(
     说明：
     - 如需复杂的嵌套逻辑组合，请使用 combine_masks 方法。
     """
+    def _and_mask(m, c):
+        return m & c
+
+    def _or_mask(m, c):
+        return m | c
+
     if logic == "and":
         mask = (
             true_mask
             if true_mask is not None
             else pd.Series([True] * len(df), index=df.index)
         )
-        operator_func = lambda m, c: m & c
+        operator_func = _and_mask
     elif logic == "or":
         mask = (
             false_mask
             if false_mask is not None
             else pd.Series([False] * len(df), index=df.index)
         )
-        operator_func = lambda m, c: m | c
+        operator_func = _or_mask
     else:
         raise ValueError(f"不支持的逻辑操作类型: {logic}，支持 'and' 或 'or'")
 

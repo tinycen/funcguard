@@ -1,3 +1,9 @@
+try:
+    from importlib.metadata import version as _get_version
+    __version__ = _get_version("funcguard")
+except Exception:
+    __version__ = "unknown"
+
 from .core import timeout_handler, retry_function, ask_select
 from .tools import send_request, curl_cffi_request, check_url_valid, encode_basic_auth, md5_hash
 from .time_utils import (

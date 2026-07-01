@@ -9,6 +9,7 @@ def fill_na(
     columns: list[str] | dict[str, Any],
     fill_value: Any = "",
     decimal_places: int | None = None,
+    copy: bool = False,
 ) -> pd.DataFrame:
     """
     替换DataFrame中指定列的空值为指定值。
@@ -21,13 +22,16 @@ def fill_na(
         * 如果为List[str]且为空列表，则对所有列应用fill_value填充
     - fill_value (Any, optional)：当columns为列表时的默认填充值，默认为空字符串。
     - decimal_places (int, optional)：当进行数值转换时保留的小数位数，默认为None表示不限制
+    - copy (bool, optional)：是否在副本上操作而非修改原 DataFrame，默认 False。
 
     返回：
     - pd.DataFrame：替换空值后的DataFrame。
 
-    注意：本函数直接修改传入的 DataFrame，不返回副本。如需保留原数据，
-    请在调用前使用 df.copy()。
+    注意：当 copy=False 时，本函数直接修改传入的 DataFrame。
+    如需保留原数据，请设置 copy=True 或在调用前使用 df.copy()。
     """
+    if copy:
+        df = df.copy()
     _is_numeric_fill = isinstance(fill_value, (int, float))
 
     if isinstance(columns, list):
