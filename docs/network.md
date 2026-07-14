@@ -25,6 +25,7 @@ def send_request(
     url: str,
     headers: Optional[Dict[str, str]] = None,
     data: Optional[Any] = None,
+    params: Optional[Dict[str, Any]] = None,
     return_type: str = "json",
     timeout: int = 60,
     auto_retry: Optional[Dict[str, Any]] = None,
@@ -43,6 +44,7 @@ def send_request(
 | `url` | `str` | 必填 | 请求 URL |
 | `headers` | `Optional[Dict[str, str]]` | `None` | 请求头字典 |
 | `data` | `Optional[Any]` | `None` | 请求数据。如果是 `dict` 或 `list`，会自动转为 JSON 字符串并设置 `Content-Type: application/json` |
+| `params` | `Optional[Dict[str, Any]]` | `None` | URL 查询参数，`dict` 类型，会自动进行 URL 编码并拼接在 URL 后 |
 | `return_type` | `str` | `"json"` | 返回类型，可选 `"json"`, `"text"`, `"response"` |
 | `timeout` | `int` | `60` | 请求超时时间（秒） |
 | `auto_retry` | `Optional[Dict[str, Any]]` | `None` | 自动重试配置，详见下方说明 |
@@ -82,6 +84,17 @@ response = send_request(
     headers={"Authorization": "Bearer token123"}
 )
 print(response)  # 解析后的 JSON 数据
+```
+
+#### GET 请求带查询参数
+
+```python
+response = send_request(
+    method="GET",
+    url="https://api.example.com/users",
+    params={"page": 1, "size": 20, "search": "张三"}
+    # 等价于: https://api.example.com/users?page=1&size=20&search=%E5%BC%A0%E4%B8%89
+)
 ```
 
 #### POST 请求（自动 JSON 序列化）

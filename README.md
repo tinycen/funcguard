@@ -156,6 +156,15 @@ response = send_request(
 )
 print(response)
 
+# 带 URL 查询参数的 GET 请求
+response = send_request(
+    method="GET",
+    url="https://api.example.com/users",
+    params={"page": 1, "size": 20, "search": "张三"}
+    # 等价于: https://api.example.com/users?page=1&size=20&search=%E5%BC%A0%E4%B8%89
+)
+print(response)
+
 # POST 请求（自动将 dict/list 转为 JSON）
 response = send_request(
     method="POST",
