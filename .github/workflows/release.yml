@@ -15,7 +15,8 @@ permissions:
   models: read
 
 jobs:
-  build-test-publish-release:
+  test:
+    name: Build & Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -23,16 +24,12 @@ jobs:
     steps:
     - name: Checkout source code
       uses: actions/checkout@v4
-      with:
-        # 拉取所有历史记录，以便能比较不同 tag 之间的差异
-        fetch-depth: 0
 
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
-    # 构建、测试、打包 ...
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
@@ -42,22 +39,48 @@ jobs:
       run: |
         pip install setuptools wheel
         python setup.py sdist bdist_wheel
-        
+
+  release:
+    name: Publish & Generate Release Notes
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        # 拉取所有历史记录，以便能比较不同 tag 之间的差异
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install -e .
+
+    - name: Build package
+      run: |
+        pip install setuptools wheel
+        python setup.py sdist bdist_wheel
+
     # ------------------------------------------------------------------
-    # AI 生成 Release Notes 的新步骤
+    # AI 生成 Release Notes
     # ------------------------------------------------------------------
 
-    - name: 1. Get commit history for AI prompt
+    - name: Get commit history for AI prompt
       id: get_changelog
       run: |
         # 获取当前标签
         CURRENT_TAG=${{ github.ref_name }}
         echo "Current tag is: $CURRENT_TAG"
-        
+
         # 获取上一个标签
         # git describe --tags --abbrev=0 HEAD~1 在某些情况下可能不准确，改用下面的方法
         PREVIOUS_TAG=$(git tag --sort=-v:refname | head -n 2 | tail -n 1)
-        
+
         if [ -z "$PREVIOUS_TAG" ]; then
           echo "No previous tag found. Using all commits."
           # 如果是第一个 tag，则获取从项目开始到当前 tag 的所有 commit
@@ -67,7 +90,7 @@ jobs:
           # 获取两个 tag 之间的 commit log
           COMMIT_LOG=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..$CURRENT_TAG)
         fi
-        
+
         # 将多行 commit log 转换为单行字符串，以便在 JSON 中传递
         # 使用 EOF 来处理多行字符串，避免转义问题
         CHANGELOG_CONTENT=$(cat <<EOF
@@ -75,19 +98,17 @@ jobs:
         EOF
         )
 
-        # -----------------------------------------------------------------
-        # 新增：专门用于调试，打印变量内容到日志
+        # 专门用于调试，打印变量内容到日志
         echo "--- Content being set for the next step ---"
         echo "$CHANGELOG_CONTENT"
         echo "-------------------------------------------"
-        # -----------------------------------------------------------------
-      
+
         # 将处理好的 changelog 设置为 step 的输出
         echo "changelog_for_ai<<EOF" >> $GITHUB_OUTPUT
         echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
-    - name: 2. Call AI to generate release notes
+    - name: Call AI to generate release notes
       id: ai_release_notes
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,11 +116,11 @@ jobs:
       run: |
         # 安装 jq 用于解析 JSON 响应
         sudo apt-get update && sudo apt-get install -y jq
-        
+
         # 构建 AI Prompt
         # 指示 AI 将 commit log 总结并分类为版本说明
         PROMPT="Based on the following list of commit messages, please generate a user-friendly changelog for a new release. Categorize the changes into '🚀 New Features', '🐛 Bug Fixes', and '⚙️ Other Changes'. Use markdown bullet points for each item. If a category is empty, please omit it from the output. Here are the commits:"
-        
+
         # 构建 JSON 请求体
         # 使用 jq 来安全地构建 JSON，避免手动拼接字符串的各种问题
         JSON_PAYLOAD=$(jq -n \
@@ -127,26 +148,24 @@ jobs:
              -H "Authorization: Bearer $GITHUB_TOKEN" \
              -d "$JSON_PAYLOAD")
 
-        # =======================================================
-        # === 新增的调试步骤：打印从 API 收到的原始响应 ===
+        # 打印从 API 收到的原始响应
         echo "--- Raw AI Response Start ---"
         echo "$AI_RESPONSE"
         echo "--- Raw AI Response End ---"
-        # =======================================================
 
         # 从 AI 响应中提取内容，并设置为 step 的输出
         RELEASE_BODY=$(echo "$AI_RESPONSE" | jq -r '.choices[0].message.content')
-        
+
         echo "Generated Release Notes:"
         echo "$RELEASE_BODY"
-        
+
         # 将最终的 release body 设置为 step 的输出，以便后续步骤使用
         echo "release_body<<EOF" >> $GITHUB_OUTPUT
         echo "$RELEASE_BODY" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
     # ------------------------------------------------------------------
-    # 发布到 PyPI 和 GitHub Release 的步骤
+    # 发布到 PyPI 和 GitHub Release
     # ------------------------------------------------------------------
 
     - name: Publish to PyPI
