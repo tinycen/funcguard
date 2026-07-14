@@ -2,6 +2,7 @@ import json
 import base64
 import hashlib
 import requests
+import urllib.parse
 from curl_cffi import requests as cffi_requests
 
 from typing import Any, Literal
@@ -107,6 +108,7 @@ def send_request(
     url: str,
     headers: dict[str, str] | None = None,
     data: Any | None = None,
+    params: dict[str, Any] | None = None,
     return_type: str = "json",
     timeout: int = 60,
     auto_retry: dict[str, Any] | None = None,
@@ -122,6 +124,7 @@ def send_request(
     :param url: 请求URL
     :param headers: 请求头
     :param data: 请求数据
+    :param params: URL查询参数，dict 类型，会自动进行 URL 编码并拼接在 URL 后
     :param return_type: 返回类型（json, text, response）
     :param timeout: 请求超时时间
     :param auto_retry: 自动重试配置，格式为：
@@ -138,6 +141,10 @@ def send_request(
     :return: 请求结果
     """
     payload = None
+
+    # 处理 URL 查询参数
+    parameters = urllib.parse.urlencode(params) if params else ""
+    url = url + (f"?{parameters}" if parameters else "")
 
     if data is not None:
         if isinstance(data, dict) or isinstance(data, list):
