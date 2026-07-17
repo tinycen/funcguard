@@ -1,4 +1,5 @@
 import pandas as pd
+from os import PathLike
 
 from .statistics.mask_utils import build_single_mask, build_base_mask, combine_masks
 
@@ -100,3 +101,59 @@ def pd_filter(
         f"不支持的条件类型: {type(first_item)}。"
         "请使用 Tuple（单个条件）、List[Tuple]（多个条件）或 List[pd.Series]（掩码列表）"
     )
+
+
+def pd_select_columns(
+    df: pd.DataFrame,
+    retain_columns: list[str] | str | PathLike[str],
+    raise_on_missing: bool = True
+) -> pd.DataFrame:
+    """
+    根据列名列表或txt文件路径裁剪DataFrame，仅保留指定列
+
+    参数：
+    - df (pd.DataFrame): 输入的DataFrame
+    - columns (list[str] | str):
+        - 列名列表: ['col1', 'col2', 'col3']
+        - txt文件路径: 'C:/path/to/columns.txt' 或 'columns.txt'
+          txt文件每行一个列名，支持空行和注释行（以#开头）
+    - raise_on_missing (bool): 当指定列在DataFrame中不存在时是否报错，
+        默认为True；为False时跳过缺失列
+
+    返回：
+    - pd.DataFrame: 仅保留指定列的新DataFrame
+
+    示例：
+    # 使用列名列表
+    result = pd_select_columns(df, ['name', 'age', 'salary'])
+
+    # 使用txt文件
+    result = pd_select_columns(df, 'config/selected_columns.txt')
+
+    # 跳过缺失列
+    result = pd_select_columns(df, ['name', 'age'], raise_on_missing=False)
+
+    """
+    if df.empty:
+        return df.copy()
+
+    # 处理txt文件路径
+    if isinstance(retain_columns, list):
+        column_list = retain_columns
+    else:
+        column_list = []
+        with open(retain_columns, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                # 跳过空行和注释行
+                if line and not line.startswith('#'):
+                    column_list.append(line)
+
+    # 检查列是否存在
+    missing_cols = set(column_list) - set(df.columns)
+    if missing_cols:
+        if raise_on_missing:
+            raise ValueError(f"DataFrame中不存在以下列: {missing_cols}")
+        column_list = [col for col in column_list if col in df.columns]
+
+    return df[column_list].copy()

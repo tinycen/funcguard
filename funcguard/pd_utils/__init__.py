@@ -20,7 +20,7 @@ from .statistics import (
     pd_group_agg, 
     DataFrameStatistics
 )
-from .filter import pd_filter
+from .filter import pd_filter, pd_select_columns
 
 # 启用未来行为：禁止静默降级
 pd.set_option("future.no_silent_downcasting", True)
@@ -44,6 +44,7 @@ __all__ = [
 
     # 数据筛选类
     "pd_filter",
+    "pd_select_columns",
 
     # 统计分析类
     "pd_build_mask",
