@@ -31,6 +31,7 @@ from .pd_utils import (
 
     # 数据筛选类
     pd_filter,
+    pd_select_columns,
     pd_build_mask,
     pd_build_masks,
     pd_combine_masks,
@@ -102,6 +103,7 @@ __all__ = [
     
     # 数据筛选类
     "pd_filter",
+    "pd_select_columns",
 
     # 统计分析类
     "pd_build_mask",

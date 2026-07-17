@@ -61,6 +61,27 @@ filtered_df = pd.concat([group1, group2]).drop_duplicates()
 - 2 元组 `(列名, 值)`：简写格式，默认为 `==` 比较，如 `('status', 'active')` 等价于 `('status', '==', 'active')`
 - 2 元组 `(列名, null 运算符)`：空值判断，支持 `null`、`not null`、`empty`、`not empty`，如 `('email', 'null')`
 
+## pd_select_columns - 列选择
+
+根据列名列表或 txt 文件路径裁剪 DataFrame，仅保留指定列。
+
+```python
+from funcguard import pd_select_columns
+
+# 使用列名列表
+result = pd_select_columns(df, ['name', 'age', 'salary'])
+
+# 使用 txt 文件（每行一个列名，支持空行和 # 注释）
+result = pd_select_columns(df, 'config/selected_columns.txt')
+
+# 跳过不存在的列（不报错）
+result = pd_select_columns(df, ['name', 'age'], raise_on_missing=False)
+```
+
+**参数说明：**
+- `retain_columns`：支持列名列表 `list[str]` 或 txt 文件路径（`str` / `PathLike`）
+- `raise_on_missing`：默认 `True`，当指定列在 DataFrame 中不存在时抛出异常；设为 `False` 时跳过缺失列
+
 ## 掩码构建函数
 
 如果需要更底层的控制，可以直接使用掩码构建函数。详见 [mask.md](./mask.md)。
