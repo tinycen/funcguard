@@ -1,9 +1,15 @@
 #!/bin/bash
 # bash create_tag.sh
 
-# 定义要创建的标签
-TAG_NAME="v0.2.56"
-# 请注意，需要同步修改 setup.py 中的 version，否则无法同步到Pypi
+PROJECT_DIR="funcguard"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VERSION="$(cat "$SCRIPT_DIR/$PROJECT_DIR/.version")"
+TAG_NAME="v${VERSION}"
+
+echo "Version from $PROJECT_DIR/.version: $VERSION"
+echo "Tag to create: $TAG_NAME"
+
 
 # 显示 创建前 3个本地标签
 echo "Before create tag , Latest 3 local tags:"

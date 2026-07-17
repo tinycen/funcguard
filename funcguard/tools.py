@@ -7,7 +7,7 @@ from curl_cffi import requests as cffi_requests
 
 from typing import Any, Literal
 from .core import retry_function
-from .data_models import RequestLog
+from .models import RequestLog
 
 # HTTP 方法类型别名
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "PATCH"]

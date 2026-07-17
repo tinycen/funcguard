@@ -1,8 +1,6 @@
-try:
-    from importlib.metadata import version as _get_version
-    __version__ = _get_version("funcguard")
-except Exception:
-    __version__ = "unknown"
+from pathlib import Path
+__author__ = "tinycen"
+__version__ = (Path(__file__).parent / ".version").read_text().strip()
 
 from .core import timeout_handler, retry_function, ask_select
 from .tools import send_request, curl_cffi_request, check_url_valid, encode_basic_auth, md5_hash
@@ -44,15 +42,14 @@ from .pd_utils import (
 )
 from .calculate import format_difference
 
-from .data_models import RequestLog
+from .models import RequestLog
 from .log_utils import setup_logger
 
 
-
-__author__ = "ruocen"
-
 # 暴露主要接口
 __all__ = [
+    "__version__",
+
     # 核心功能
     "timeout_handler",
     "retry_function",

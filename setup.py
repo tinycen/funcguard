@@ -1,3 +1,4 @@
+import os
 from setuptools import setup, find_packages
 
 # 读取README文件
@@ -7,15 +8,19 @@ try:
 except FileNotFoundError:
     long_description = 'A funcguard for Python.'
 
+root_dir = os.path.dirname(__file__)
+
+with open(os.path.join(root_dir, "requirements.txt"), encoding="utf-8") as fh:
+    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+
+with open(os.path.join(root_dir, "funcguard", ".version"), encoding="utf-8") as fh:
+    version = "v" + fh.read().strip()
+
 setup(
     name='funcguard',
-    version='0.2.56',
+    version=version,
     packages=find_packages(),
-    install_requires=[
-        'requests',
-        'pandas',
-        'curl_cffi',
-    ],
+    install_requires=requirements,
     author='tinycen',
     author_email='sky_ruocen@qq.com',
     description='FuncGuard是一个Python库，提供函数执行超时控制、重试机制、HTTP请求封装和格式化打印工具。',
