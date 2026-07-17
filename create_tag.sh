@@ -10,7 +10,6 @@ TAG_NAME="v${VERSION}"
 echo "Version from $PROJECT_DIR/.version: $VERSION"
 echo "Tag to create: $TAG_NAME"
 
-
 # 显示 创建前 3个本地标签
 echo "Before create tag , Latest 3 local tags:"
 git tag -l | sort -V | tail -n 3
