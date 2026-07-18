@@ -40,4 +40,9 @@ setup(
     python_requires='>=3.10',
     include_package_data=True,
     zip_safe=False,
+    package_data={
+        "funcguard": [
+            ".version",
+        ]
+    },
 )
