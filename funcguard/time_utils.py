@@ -2,6 +2,7 @@
 时间工具模块，提供时间计算、日志记录和执行时间监控功能
 """
 import time
+from typing import Literal
 from datetime import datetime, timezone, timedelta
 from .log_utils import setup_logger, _normalize_level
 
@@ -177,7 +178,9 @@ def time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwarg
 
 
 # 获取当前的时间
-def get_now( from_timezone = "local", remove_tzinfo = True, fmt = None ):
+def get_now( from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local", 
+            remove_tzinfo = True, 
+            fmt: Literal[ None, "millis", "iso", "str" ] = None ):
     """
     获取当前时间，支持多种时区和输出格式。
 
