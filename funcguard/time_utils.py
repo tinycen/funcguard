@@ -185,6 +185,7 @@ def get_now( from_timezone = "local", remove_tzinfo = True, fmt = None ):
         - "local": 本地时间（tz-naive，不含时区信息）。
         - "utc": UTC时间（tz-aware，包含 UTC 时区信息）。
         - "bj": 北京时间（tz-aware，包含 UTC+8 时区信息）。
+        - "jp": 东京时间（tz-aware，包含 UTC+9 时区信息）。
 
         naive vs aware 的区别：
         - naive（无时区信息）：仅表示一个日期和时间，不知道自己处于哪个时区，其含义取决于运行环境。
@@ -208,8 +209,11 @@ def get_now( from_timezone = "local", remove_tzinfo = True, fmt = None ):
     elif from_timezone == "bj" :   # 固定北京时间 (tz-aware) ，包含时区信息
         now_time = datetime.now( timezone( timedelta( hours = 8 ) ) )
 
+    elif from_timezone == "jp" :   # 固定东京时间 (tz-aware) ，包含时区信息
+        now_time = datetime.now( timezone( timedelta( hours = 9 ) ) )
+
     else :
-        raise ValueError( "Invalid timezone , must be 'local' , 'utc' , 'bj' " )
+        raise ValueError( "Invalid timezone , must be 'local' , 'utc' , 'bj' , 'jp' " )
 
     # 未指定 fmt 时，返回 datetime 对象
     if fmt is None :
