@@ -222,7 +222,7 @@ def get_now( from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local",
         - "millis": 返回毫秒级时间戳（int）
         - "iso": 返回 ISO 8601 格式字符串，例如 2024-03-15T14:00:00；当 from_timezone="utc" 时自动追加 Z 后缀（Z = Zulu time = UTC+0）
         - "plain": 返回普通字符串，格式为 %Y-%m-%d %H:%M:%S
-        - "str": "plain" 的兼容别名，效果相同（已废弃，建议改用 "plain"）
+        - "str": "plain" 的兼容别名，效果相同（建议改用 "plain"）
     :return: datetime 对象 | int（毫秒时间戳） | str（格式化字符串）
     """
     if from_timezone == "local" :
