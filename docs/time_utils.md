@@ -148,7 +148,7 @@ iso_time = get_now(fmt="iso")  # 例如：2024-03-15T14:00:00
 utc_iso = get_now(from_timezone="utc", fmt="iso")  # 例如：2024-03-15T06:00:00Z
 
 # 获取普通格式化字符串
-str_time = get_now(fmt="str")  # 例如：2024-03-15 14:00:00
+plain_time = get_now(fmt="plain")  # 例如：2024-03-15 14:00:00
 ```
 
 **参数说明：**
@@ -161,7 +161,8 @@ str_time = get_now(fmt="str")  # 例如：2024-03-15 14:00:00
   - `None`: 返回 datetime 对象
   - `"millis"`: 返回毫秒级时间戳（int）
   - `"iso"`: 返回 ISO 8601 格式字符串；当 `from_timezone="utc"` 时自动追加 Z 后缀
-  - `"str"`: 返回普通字符串，格式为 `%Y-%m-%d %H:%M:%S`
+  - `"plain"`: 返回普通字符串，格式为 `%Y-%m-%d %H:%M:%S`
+  - `"str"`: `"plain"` 的兼容别名，效果相同（已废弃，建议改用 `"plain"`）
 **返回值：**
 - `datetime` 对象 | `int`（毫秒时间戳） | `str`（格式化字符串）
 

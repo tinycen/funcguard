@@ -2,7 +2,7 @@
 时间工具模块，提供时间计算、日志记录和执行时间监控功能
 """
 import time
-from typing import Literal
+from typing import Literal, overload
 from datetime import datetime, timezone, timedelta
 from .log_utils import setup_logger, _normalize_level
 
@@ -178,9 +178,30 @@ def time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwarg
 
 
 # 获取当前的时间
-def get_now( from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local", 
-            remove_tzinfo = True, 
-            fmt: Literal[ None, "millis", "iso", "str" ] = None ):
+@overload
+def get_now(
+    from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local",
+    remove_tzinfo: bool = True,
+    fmt: None = None,
+) -> datetime: ...
+
+@overload
+def get_now(
+    from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local",
+    remove_tzinfo: bool = True,
+    fmt: Literal[ "millis" ] = ...,
+) -> int: ...
+
+@overload
+def get_now(
+    from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local",
+    remove_tzinfo: bool = True,
+    fmt: Literal[ "iso", "plain", "str" ] = ...,
+) -> str: ...
+
+def get_now( from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local",
+            remove_tzinfo: bool = True,
+            fmt: Literal[ None, "millis", "iso", "plain", "str" ] = None ):
     """
     获取当前时间，支持多种时区和输出格式。
 
@@ -200,7 +221,8 @@ def get_now( from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local",
         - None: 返回 datetime 对象
         - "millis": 返回毫秒级时间戳（int）
         - "iso": 返回 ISO 8601 格式字符串，例如 2024-03-15T14:00:00；当 from_timezone="utc" 时自动追加 Z 后缀（Z = Zulu time = UTC+0）
-        - "str": 返回普通字符串，格式为 %Y-%m-%d %H:%M:%S
+        - "plain": 返回普通字符串，格式为 %Y-%m-%d %H:%M:%S
+        - "str": "plain" 的兼容别名，效果相同（已废弃，建议改用 "plain"）
     :return: datetime 对象 | int（毫秒时间戳） | str（格式化字符串）
     """
     if from_timezone == "local" :
@@ -234,12 +256,12 @@ def get_now( from_timezone: Literal[ "local", "utc", "bj", "jp" ] = "local",
     elif fmt == "millis" :
         return int( now_time.timestamp() * 1000 )
 
-    # 格式化为普通字符串
-    elif fmt == "str" :
+    # 格式化为普通字符串（"str" 为 "plain" 的兼容别名）
+    elif fmt in ( "plain", "str" ) :
         return now_time.strftime( '%Y-%m-%d %H:%M:%S' )
 
     else :
-        raise ValueError( "Invalid fmt , must be None , 'millis' , 'iso' or 'str'" )
+        raise ValueError( "Invalid fmt , must be None , 'millis' , 'iso' or 'plain'" )
 
 
 # 计算日期差值
