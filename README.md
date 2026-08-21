@@ -646,7 +646,9 @@ print(text)  # {当前年份} 年发布的版本
 | `setup_logger` | 配置彩色日志logger |
 | `color_logger` | 彩色日志输出 |
 
+## PyPI
 
+https://pypi.org/project/funcguard/
 
 ## 许可证
 
