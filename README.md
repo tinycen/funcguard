@@ -14,7 +14,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 | **IP工具** | 局域网IP检测、公网IP检测、IP格式验证 | - |
 | **pandas工具** | 数据填充、类型转换、JSON解析、数据筛选、统计分析 | [查看](./docs/pd_utils.md) |
 | **计算工具** | 数值差异格式化（如+5、-3等） | - |
-| **文本工具** | 违禁词检测、文本清理、年份归一化 | [查看](./docs/text_utils.md) |
+| **文本工具** | 违禁词检测、文本清理、URL清理、年份归一化 | [查看](./docs/text_utils.md) |
 | **日志工具** | 彩色日志输出、logger配置 | - |
 
 ## 安装/升级
@@ -541,10 +541,10 @@ print(f"当前价格: {current_price}, 变化: {price_change}")  # 输出: 当�
 
 ### 文本处理工具
 
-违禁词检测、文本清理和年份归一化：
+违禁词检测、文本清理、URL清理和年份归一化：
 
 ```python
-from funcguard import check_text, clean_text, TextCleaner
+from funcguard import check_text, clean_text, clean_url, TextCleaner
 
 # 违禁词检测（大小写不敏感）
 has_forbid = check_text("这是一段测试文本", ["测试"])
@@ -553,6 +553,10 @@ print(has_forbid)  # True
 # 清理文本：去除头部问号/冒号及指定子串
 cleaned = clean_text("?：hello world", ["hello"])
 print(cleaned)  # world
+
+# 清理URL：去除查询参数与锚点
+url = clean_url("https://detail.1688.com/offer/67764217.html?spm=a261y.7663282.3002526303362591.2.32671cfas8Yzdd&sk=order")
+print(url)  # https://detail.1688.com/offer/67764217.html
 
 # 年份归一化：将 2000~当前年份的年份替换为当前年份
 cleaner = TextCleaner()
@@ -637,6 +641,7 @@ print(text)  # {当前年份} 年发布的版本
 |-----------|----------|------|
 | `check_text` | 违禁词检测（大小写不敏感） | [查看](docs/text_utils.md#check_text) |
 | `clean_text` | 清理文本（去除头部问号/冒号及指定子串） | [查看](docs/text_utils.md#clean_text) |
+| `clean_url` | 清理 URL（去除查询参数与锚点） | [查看](docs/text_utils.md#clean_url) |
 | `TextCleaner` | 年份归一化与文本清理 | [查看](docs/text_utils.md#textcleaner) |
 
 ### 日志工具

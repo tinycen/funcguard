@@ -49,6 +49,25 @@ print(result)  # 测试
 
 ---
 
+## clean_url - 清理 URL 参数
+
+清理 URL：去掉查询参数（`?` 之后的部分）和锚点（`#` 之后的部分），保留协议、域名和路径。
+
+```python
+from funcguard import clean_url
+
+result = clean_url("https://detail.1688.com/offer/677624217.html?spm=a261y.7663282.3002526303362591.2.32671cfas8Yzdd&sk=order")
+print(result)  # https://detail.1688.com/offer/677624217.html
+```
+
+**参数说明：**
+- `text`: 待清理文本，将作为 URL 解析
+
+**返回值：**
+- `str`：去掉查询参数和锚点后的 URL
+
+---
+
 ## TextCleaner - 文本年份归一化与清理
 
 将文本中 2000~当前年份之间的年份统一替换为当前年份，并可按替换词列表先做一次文案清理。

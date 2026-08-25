@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from typing import List
+from urllib.parse import urlsplit, urlunsplit
 
 
 def check_text(text: str, forbid_words: List[str]) -> bool:
@@ -36,6 +37,20 @@ def clean_text(text: str, replacements: List[str]) -> str:
         regex = re.compile(re.escape(replacement), re.IGNORECASE)
         text = regex.sub("", text)
     return text.strip()
+
+
+def clean_url(text: str) -> str:
+    """
+    清理 URL：去掉查询参数（?...）和锚点（#...）。
+
+    例如 ``https://detail.1688.com/offer/6776924217.html?spm=a261y...&sk=order``
+    清理后返回 ``https://detail.1688.com/offer/6776924217.html``。
+
+    :param text: 待清理文本，作为 URL 解析
+    :return: 去掉参数和锚点后的 URL
+    """
+    parts = urlsplit(text)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
 
 
 class TextCleaner:

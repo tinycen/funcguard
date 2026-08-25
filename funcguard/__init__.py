@@ -42,7 +42,7 @@ from .pd_utils import (
 
 )
 from .calculate import format_difference
-from .text_utils import check_text, clean_text, TextCleaner
+from .text_utils import check_text, clean_text, clean_url, TextCleaner
 
 from .models import RequestLog
 from .log_utils import setup_logger
@@ -124,6 +124,7 @@ __all__ = [
     # 文本处理工具
     "check_text",
     "clean_text",
+    "clean_url",
     "TextCleaner",
 
 ]
