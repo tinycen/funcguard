@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from setuptools import setup, find_packages
 
 # 读取README文件
@@ -10,15 +11,15 @@ except FileNotFoundError:
 
 root_dir = os.path.dirname(__file__)
 
+# 版本号统一由 funcguard/.version 维护，setup.py 与 __init__.py 均从此读取
+__version__ = (Path(root_dir) / "funcguard" / ".version").read_text(encoding="utf-8").strip()
+
 with open(os.path.join(root_dir, "requirements.txt"), encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
-with open(os.path.join(root_dir, "funcguard", ".version"), encoding="utf-8") as fh:
-    version = "v" + fh.read().strip()
-
 setup(
     name='funcguard',
-    version=version,
+    version=f"v{__version__}",
     packages=find_packages(),
     install_requires=requirements,
     author='tinycen',
