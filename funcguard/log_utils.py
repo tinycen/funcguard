@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from datetime import datetime, timedelta, timezone
-from typing import TextIO, cast
+from typing import TextIO, cast, Literal
 
 
 def _color_enabled() -> bool:
@@ -52,6 +52,7 @@ _FORMAT_PRESETS = {
     "time_message": "%(asctime)s %(message)s",
     "full": "%(asctime)s - %(levelname)s - %(message)s",
 }
+_FORMAT_PARAM = Literal["message", "time_message", "full"]
 
 # 固定时区映射（与 get_now 的 from_timezone 风格统一）
 _TZ_MAP = {
@@ -164,7 +165,7 @@ def setup_logger(
     name: str | None = None,
     level: int | str = logging.DEBUG,
     stream: TextIO | None = None,
-    format: str | None = None,
+    format: _FORMAT_PARAM | str | None = None,
     datefmt: str = "%H:%M:%S",
     tz: str = "local",
 ) -> SuccessLogger:
