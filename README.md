@@ -10,7 +10,7 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 | **核心功能** | 函数执行超时控制、函数执行失败自动重试、交互式选择菜单 | - |
 | **网络请求** | HTTP请求封装（支持自动重试）、MD5哈希、Basic Auth编码 | [查看](./docs/network.md) |
 | **时间工具** | 时间日志记录、耗时统计、执行时间监控和警告、时间等待（带倒计时） | [查看](./docs/time_utils.md) |
-| **打印工具** | 格式化分隔线、块打印、标题打印、进度条显示 | - |
+| **打印工具** | 格式化分隔线、块打印、标题打印、进度条显示 | [查看](./docs/print_progress_subprocess.md) |
 | **IP工具** | 局域网IP检测、公网IP检测、IP格式验证 | - |
 | **pandas工具** | 数据填充、类型转换、JSON解析、数据筛选、统计分析 | [查看](./docs/pd_utils.md) |
 | **计算工具** | 数值差异格式化（如+5、-3等） | - |
@@ -273,6 +273,11 @@ for i in range(101):
 print()  # 处理完成后换行
 ```
 
+> **注意**：进度条使用 `\r` 原地覆盖刷新，该机制仅在真实终端（tty）中有效。
+> 若通过 `subprocess` 捕获输出，`text=True` 会把 `\r` 转换为 `\n`，
+> 导致 11 次刷新变成 11 行。详见
+> [print_progress 在 subprocess 中的打印行为与测试](./docs/print_progress_subprocess.md)。
+
 ### 时间日志记录
 
 - 自动显示北京时间（UTC+8）
@@ -282,6 +287,12 @@ print()  # 处理完成后换行
 - 支持i从0或从1开始的计数方式
 - 支持 level 参数输出彩色日志（DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL）
 - 支持函数执行时间监控和警告
+
+> **注意**：`time_log` 带 `level` 时会走彩色 logger，ANSI 颜色码（`\x1b[31m` 等）
+> **无条件输出**，不判断终端类型。通过 `subprocess` 捕获时会原样进入结果，
+> 需清洗后再做字符串匹配或写入日志文件。此外 logger 的 stream 在 import 时即被绑定，
+> `redirect_stdout` / pytest `capsys` 捕获不到这部分输出。详见
+> [time_log 彩色日志在 subprocess 中的输出与捕获](./docs/time_log_subprocess.md)。
 
 使用`time_log`和`time_diff`函数记录任务执行时间和统计信息：
 
