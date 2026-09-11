@@ -10,12 +10,12 @@ FuncGuard是一个Python库，提供了函数执行超时控制和重试机制�
 | **核心功能** | 函数执行超时控制、函数执行失败自动重试、交互式选择菜单 | - |
 | **网络请求** | HTTP请求封装（支持自动重试）、MD5哈希、Basic Auth编码 | [查看](./docs/network.md) |
 | **时间工具** | 时间日志记录、耗时统计、执行时间监控和警告、时间等待（带倒计时） | [查看](./docs/time_utils.md) |
-| **打印工具** | 格式化分隔线、块打印、标题打印、进度条显示 | [查看](./docs/print_progress_subprocess.md) |
+| **打印工具** | 格式化分隔线、块打印、标题打印、进度条显示 | [查看](./docs/printer.md) |
 | **IP工具** | 局域网IP检测、公网IP检测、IP格式验证 | - |
 | **pandas工具** | 数据填充、类型转换、JSON解析、数据筛选、统计分析 | [查看](./docs/pd_utils.md) |
 | **计算工具** | 数值差异格式化（如+5、-3等） | - |
 | **文本工具** | 违禁词检测、文本清理、URL清理、年份归一化 | [查看](./docs/text_utils.md) |
-| **日志工具** | 彩色日志输出、logger配置 | - |
+| **日志工具** | 彩色日志输出、logger配置（格式预设/时区/终端感知） | [查看](./docs/logger.md) |
 
 ## 安装/升级
 
@@ -273,10 +273,10 @@ for i in range(101):
 print()  # 处理完成后换行
 ```
 
-> **注意**：进度条使用 `\r` 原地覆盖刷新，该机制仅在真实终端（tty）中有效。
-> 若通过 `subprocess` 捕获输出，`text=True` 会把 `\r` 转换为 `\n`，
-> 导致 11 次刷新变成 11 行。详见
-> [print_progress 在 subprocess 中的打印行为与测试](./docs/print_progress_subprocess.md)。
+> **注意**：进度条在终端（tty）下使用 `\r` 原地覆盖刷新；非终端环境
+> （管道/文件/CI）自动降级为按 10% 步进的换行输出，100% 必打，
+> subprocess 捕获不会丢帧也不会刷屏。详见
+> [subprocess 场景下的输出行为](./docs/subprocess_output.md)。
 
 ### 时间日志记录
 
@@ -288,11 +288,11 @@ print()  # 处理完成后换行
 - 支持 level 参数输出彩色日志（DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL）
 - 支持函数执行时间监控和警告
 
-> **注意**：`time_log` 带 `level` 时会走彩色 logger，ANSI 颜色码（`\x1b[31m` 等）
-> **无条件输出**，不判断终端类型。通过 `subprocess` 捕获时会原样进入结果，
-> 需清洗后再做字符串匹配或写入日志文件。此外 logger 的 stream 在 import 时即被绑定，
-> `redirect_stdout` / pytest `capsys` 捕获不到这部分输出。详见
-> [time_log 彩色日志在 subprocess 中的输出与捕获](./docs/time_log_subprocess.md)。
+> **注意**：`time_log` 统一走彩色 logger 输出（`level` 为空时默认 INFO 级别），
+> 默认格式为 `"HH:MM:SS 消息"`（北京时间）。ANSI 颜色码仅在真实终端输出，
+> 管道/文件场景自动降级为纯文本，subprocess 捕获无需清洗。
+> logger 的 stream 动态解析，`redirect_stdout` / pytest `capsys` 可正常捕获。
+> 详见 [subprocess 场景下的输出行为](./docs/subprocess_output.md)。
 
 使用`time_log`和`time_diff`函数记录任务执行时间和统计信息：
 
@@ -454,7 +454,13 @@ logger.debug("数据库调试信息")
 logger = setup_logger(level="debug")
 
 # 仅输出消息（不包含时间与等级）
-logger = setup_logger(message_only=True)
+logger = setup_logger(format="message")
+
+# 时间 + 消息，固定北京时间（适用于非北京时区的机器/容器）
+logger = setup_logger("myapp", format="time_message", tz="bj")
+
+# 跨午夜任务或日志归档：显示完整日期
+logger = setup_logger("myapp", datefmt="%Y-%m-%d %H:%M:%S")
 
 # 支持的输出（含颜色）
 logger.debug("这是一条调试信息")      # 青色
@@ -465,7 +471,8 @@ logger.warning("这是一条警告信息")    # 黄色
 logger.error("这是一条错误信息")      # 红色
 logger.critical("这是一条严重错误信息")  # 紫色
 
-# 注意：Windows 自带终端（旧版 CMD）可能不支持 ANSI 颜色码
+# 注意：Windows 自带终端（旧版 CMD）可能不支持 ANSI 颜色码；
+# 非终端环境（管道/文件/CI）自动输出纯文本，也可用 NO_COLOR=1 强制禁用颜色
 
 ```
 
@@ -608,12 +615,12 @@ print(text)  # {当前年份} 年发布的版本
 
 ### 打印工具
 
-| 函数/类名 | 功能说明 |
-|-----------|----------|
-| `print_line` | 打印分隔线 |
-| `print_block` | 打印块内容 |
-| `print_title` | 打印标题 |
-| `print_progress` | 打印进度条 |
+| 函数/类名 | 功能说明 | 文档 |
+|-----------|----------|------|
+| `print_line` | 打印分隔线 | [查看](docs/printer.md) |
+| `print_block` | 打印块内容 | [查看](docs/printer.md) |
+| `print_title` | 打印标题 | [查看](docs/printer.md) |
+| `print_progress` | 打印进度条 | [查看](docs/printer.md) |
 
 ### IP工具
 
@@ -657,10 +664,10 @@ print(text)  # {当前年份} 年发布的版本
 
 ### 日志工具
 
-| 函数/类名 | 功能说明 |
-|-----------|----------|
-| `setup_logger` | 配置彩色日志logger |
-| `color_logger` | 彩色日志输出 |
+| 函数/类名 | 功能说明 | 文档 |
+|-----------|----------|------|
+| `setup_logger` | 配置彩色日志logger（格式预设/时区/终端感知） | [查看](docs/logger.md) |
+| `color_logger` | 彩色日志输出（time_log 内置 logger） | [查看](docs/logger.md) |
 
 ## PyPI
 

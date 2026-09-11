@@ -1,20 +1,22 @@
 """
 时间工具模块，提供时间计算、日志记录和执行时间监控功能
 """
+import logging
+import sys
 import time
 from typing import Literal, overload
 from datetime import datetime, timezone, timedelta
 from .log_utils import setup_logger, _normalize_level
 
 
-color_logger = setup_logger("funcguard_time_logger", message_only=True)
+color_logger = setup_logger("funcguard_time_logger", format="time_message", tz="bj")
 
 
 # 打印时间
-def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return_field = "progress_info", level = "") :
+def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return_field = "progress_info", level = "", logger = None) :
     """
     打印带时间戳的日志信息，支持进度显示和预计完成时间
-    
+
     :param message: 日志消息
     :param i: 当前进度
     :param max_num: 总进度数量
@@ -22,20 +24,25 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
     :param start_from: i是否从0开始，0表示从0开始，1表示从1开始
     :param return_field: 返回字段，支持以下：
         "progress_info" 表示完整进度信息，"remaining_time" 表示剩余时间，"end_time" 表示预计完成时间
-    :param level: 日志等级，支持 DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL。为空时仅 print。
+    :param level: 日志等级，支持 DEBUG/INFO/PROGRESS/SUCCESS/WARNING/WARN/ERROR/CRITICAL/FATAL。为空时默认按 INFO 级别输出。
+    :param logger: 可选，自定义 logger（logging.Logger 类型，建议通过 setup_logger 创建）。
+        传入后替代内置 color_logger 统一输出，时间格式与时区由该 logger 决定，time_log 不再叠加时间戳。
+        注意：请传入命名 logger（如 setup_logger("myapp")），不要传 root logger；
+        若 logger 格式为 format="message"（不含时间），输出将不带时间戳，
+        需要时间请配 format="time_message" + tz="bj"，或直接使用默认的内置 logger。
     :return: 根据 return_field 参数返回不同的信息
     """
     now = datetime.now( timezone( timedelta( hours = 8 ) ) )
-    time_str = "{:02d}:{:02d}:{:02d}".format( now.hour, now.minute, now.second )
     progress_info = eta_time_info = etr_time_info = ""
+    _logger = logger or color_logger
     if i < 2 or max_num < 2 :
         if return_field in ["end_time", "remaining_time"] :
             return ""
         else:
             if level:
-                color_logger.log( _normalize_level( level ), time_str + " " + message )
+                _logger.log( _normalize_level( level ), message )
             else:
-                print( time_str + " " + message )
+                _logger.info( message )
 
     else :
         # 根据start_from参数计算实际处理的项目数
@@ -67,9 +74,9 @@ def time_log(message, i = 0, max_num = 0, s_time = None, start_from = 0 , return
             return etr_time_info
 
         if level:
-            color_logger.log( _normalize_level( level ), time_str + " " + message + " " + progress_info )
+            _logger.log( _normalize_level( level ), message + " " + progress_info )
         else:
-            print( time_str + " " + message + " " + progress_info )
+            _logger.info( message + " " + progress_info )
     return progress_info
 
 
@@ -109,21 +116,21 @@ def time_diff(s_time = None, max_num = 0, language = "cn", return_duration = 1) 
     minutes = round( duration.total_seconds() / 60 )
     if max_num == 0 :
         if language == "cn" :
-            print( "总耗时：{:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ) )
+            print( "总耗时：{:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ), flush=True )
         else :
-            print( "Total time: {:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ) )
+            print( "Total time: {:02d} : {:02d} : {:02d}".format( hours, duration_minutes, seconds ), flush=True )
     else :
         eve_minutes = round( minutes / max_num, 3 )
         if language == "cn" :
             print( "开始时间：{}，结束时间：{}".format( s_time.strftime( "%Y-%m-%d %H:%M" ), 
-                                                     e_time.strftime( "%Y-%m-%d %H:%M" ) ) )
-            print( "总耗时：{}，累计：{}分钟，数量；{}，平均耗时：{}分钟".format( result, minutes, max_num, eve_minutes ) )
+                                                     e_time.strftime( "%Y-%m-%d %H:%M" ) ), flush=True )
+            print( "总耗时：{}，累计：{}分钟，数量；{}，平均耗时：{}分钟".format( result, minutes, max_num, eve_minutes ), flush=True )
         else :
             print( "Start time：{}，End time：{}".format( s_time.strftime( "%Y-%m-%d %H:%M" ), 
-                                                        e_time.strftime( "%Y-%m-%d %H:%M" ) ) )
+                                                        e_time.strftime( "%Y-%m-%d %H:%M" ) ), flush=True )
             print( "Total time: {}，Total minutes: {}，Number: {}，Average time: {} minutes".format( result, minutes, 
                                                                                                    max_num, 
-                                                                                                       eve_minutes ) )
+                                                                                                       eve_minutes ), flush=True )
     if return_duration == 2:
         return total_seconds
     return 
@@ -169,7 +176,7 @@ def time_monitor(warning_threshold=None, print_mode=2, func=None, *args, **kwarg
     
     # 根据打印模式决定是否打印耗时信息
     if print_mode == 2 and warning_threshold is not None and total_seconds > warning_threshold:
-        print(f"警告: 函数 {func.__name__} 执行耗时 {total_seconds:.2f}秒，超过阈值 {warning_threshold}秒")
+        print(f"警告: 函数 {func.__name__} 执行耗时 {total_seconds:.2f}秒，超过阈值 {warning_threshold}秒", flush=True)
 
     if print_mode == 0:
         return result, total_seconds
@@ -301,8 +308,14 @@ def time_wait(seconds: int = 10):
     
     :param seconds: 等待的秒数，默认值为10秒
     """
+    # 终端下原地覆盖刷新；非终端（管道/文件/CI）降级为逐行输出，避免 \r 失去覆盖语义
+    interactive = sys.stdout.isatty()
     for remaining in range(seconds, 0, -1):
-        print(f"\rTime wait: {remaining}s ", end="", flush=True)
+        if interactive:
+            print(f"\r\033[KTime wait: {remaining}s ", end="", flush=True)
+        else:
+            print(f"Time wait: {remaining}s", flush=True)
         time.sleep(1)
     # 换行
-    print()
+    if interactive:
+        print()

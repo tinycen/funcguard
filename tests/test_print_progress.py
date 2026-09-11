@@ -1,12 +1,21 @@
 """
-测试 print_progress 在 subprocess 中能否正常打印进度条。
+测试 print_progress 在 subprocess 中的打印行为（0.3.0 新版行为）。
+
+新版行为（非 tty 降级分支）：
+- subprocess 管道下 sys.stdout.isatty() 为 False，进度条降级为"按 10% 步进的
+  换行输出，100% 必打"，不再使用 \\r 原地覆盖
+- percent 被钳制在 0~100，idx > total 时条体不溢出
+- 每行输出带 flush=True，管道下实时可见，进程被 kill 时不丢已打印行
+- 同一进程内 percent 回到 0 时重置步进基准，第二个进度条可正常从头输出
 
 验证点：
-1. 真实 .py 脚本文件被 subprocess 执行时，进度条能正常输出
-2. 进度条格式正确（百分比、进度条填充字符、计数器）
-3. 包含 \\r 回车符用于行内刷新
-4. 最终输出包含 100% 完成状态
-5. 输出是"边跑边吐"的（flush=True 生效），而不是进程退出时一次性刷出
+1. 基本输出格式正确（百分比、填充字符、计数器、消息）
+2. 管道下无独立 \\r 回车符（区别于 tty 分支的 \\r 覆盖帧）
+3. 完整循环按 10% 步进输出，100% 必打
+4. idx > total 时钳制到 100%，条体仍为 50 字符
+5. 101 次调用只输出 11 行（步进节流，不刷屏）
+6. 同一进程第二个进度条从 0% 重新输出
+7. flush 真正生效（帧到达时间跨度判定，而非进程退出时一次性刷出）
 
 设计说明：
 - 使用 sys.path.insert 直接定位 printer 模块，避免触发 funcguard 包 __init__.py
@@ -15,6 +24,7 @@
   默认 GBK）下父进程解码失败或出现乱码。
 - flush 是否生效只能用"流式读取"验证：capture_output 会在进程退出时拿到全部内容，
   无论有没有 flush 都能通过，属于假通过。
+- Windows 下行尾为 \\r\\n，验证"无独立 \\r"需先剔除 \\r\\n 再计数。
 """
 import contextlib
 import io
@@ -60,12 +70,12 @@ def _run_subprocess_script(script: str, raw: bool = False) -> subprocess.Complet
     """以 `-c` 内联代码方式在子进程中执行并捕获输出。
 
     :param script: 要执行的 Python 代码
-    :param raw: 为 True 时使用二进制流捕获，保留 \\r 原字符（不启用通用换行转换）
+    :param raw: 为 True 时使用二进制流捕获，保留原始字节（不启用通用换行转换）
     """
     code = _SETUP_LINE + " " + textwrap.dedent(script)
 
     if raw:
-        # 二进制模式：不启用通用换行转换，保留原始 \\r 字符
+        # 二进制模式：不启用通用换行转换，保留原始 \r\n / \r 字符
         proc = subprocess.run(
             [sys.executable, "-c", code],
             stdout=subprocess.PIPE,
@@ -73,7 +83,7 @@ def _run_subprocess_script(script: str, raw: bool = False) -> subprocess.Complet
             env=CHILD_ENV,
             timeout=30,
         )
-        # 用 newline='' 包装：不把 \\r 转成 \\n，保留原始回车符
+        # 用 newline='' 包装：不做任何换行转换，保留原始回车符
         stdout_text = io.TextIOWrapper(
             io.BytesIO(proc.stdout), encoding="utf-8", newline=""
         ).read()
@@ -104,7 +114,7 @@ def _run_script_file(script: str, raw: bool = False) -> subprocess.CompletedProc
     （如 `python xxx.py` 被调度脚本 / CI 调用）。
 
     :param script: 要执行的 Python 代码
-    :param raw: 为 True 时保留原始 \\r 字符
+    :param raw: 为 True 时保留原始字节
     """
     with _temp_script(script) as path:
         if raw:
@@ -141,18 +151,18 @@ def _run_script_file(script: str, raw: bool = False) -> subprocess.CompletedProc
 def _stream_script_file(
     script: str, timeout: float = 30.0
 ) -> tuple[str, list[float], int]:
-    """以流式方式运行真实 .py 脚本，逐字节读取并记录每一帧的到达时刻。
+    """以流式方式运行真实 .py 脚本，逐字节读取并记录每一行（帧）的到达时刻。
 
     这是验证 flush=True 是否真正生效的唯一可靠手段：
-    - 若输出被缓冲，所有进度帧会在进程退出时"一次性"到达，帧间距几乎为 0；
-    - 若 flush 生效，各帧会随 sleep 间隔陆续到达。
+    - 若输出被缓冲，所有行会在进程退出时"一次性"到达，行间距几乎为 0；
+    - 若 flush 生效，各行会随 sleep 间隔陆续到达。
 
-    用"帧到达时间跨度"而不是"首字节到达时进程是否存活"来判定，是因为后者存在竞态：
+    用"行到达时间跨度"而不是"首字节到达时进程是否存活"来判定，是因为后者存在竞态：
     子进程退出瞬间刷数据，父进程 poll() 时它可能还没完全退出，会误判为实时。
 
     :param script: 要执行的 Python 代码
     :param timeout: 读取超时（秒）
-    :return: (输出文本, 每个进度帧的到达时刻, 退出码)
+    :return: (输出文本, 每个进度行的到达时刻, 退出码)
     """
     with _temp_script(script) as path:
         proc = subprocess.Popen(
@@ -164,7 +174,7 @@ def _stream_script_file(
         )
 
         chunks: list[bytes] = []
-        frame_times: list[float] = []  # 每遇到一个 \\r（新一帧开始）就记一次时刻
+        frame_times: list[float] = []  # 每遇到一个 \n（新一行结束）就记一次时刻
         deadline = time.monotonic() + timeout
         stderr_data = b""
 
@@ -173,7 +183,7 @@ def _stream_script_file(
                 chunk = proc.stdout.read(1)  # 阻塞直到读到 1 字节或 EOF
                 if not chunk:
                     break
-                if chunk == b"\r":
+                if chunk == b"\n":
                     frame_times.append(time.monotonic())
                 chunks.append(chunk)
         finally:
@@ -192,6 +202,13 @@ def _stream_script_file(
     return stdout_text, frame_times, proc.returncode
 
 
+def _progress_lines(stdout: str) -> list[str]:
+    """从输出中筛出进度行（以 '进度: |' 开头的行）。"""
+    return [line for line in stdout.splitlines() if line.startswith("进度: |")]
+
+
+# ---------------- 基本输出 ----------------
+
 def test_print_progress_basic_output_in_subprocess():
     """验证 subprocess 中调用 print_progress 能正常输出"""
     script = """
@@ -206,11 +223,11 @@ def test_print_progress_basic_output_in_subprocess():
     assert "|" in result.stdout, f"期望输出包含进度条分隔符 |，实际输出: {repr(result.stdout)}"
 
 
-def test_print_progress_contains_carriage_return():
-    """验证输出中包含回车符（行内刷新需要）。
+def test_print_progress_no_standalone_carriage_return():
+    """验证管道下输出无独立 \\r（新版降级为换行输出，不再用 \\r 覆盖）。
 
-    注意：subprocess.run 的 text=True 模式会启用通用换行转换（\\r -> \\n），
-    因此需用 raw=True 在二进制模式下捕获以保留原始 \\r 字符。
+    Windows 下行尾为 \\r\\n，需先剔除行尾再计数；tty 分支的覆盖帧以 \\r 开头，
+    若出现独立 \\r 说明错误地走了 tty 分支。
     """
     script = """
         from printer import print_progress
@@ -222,16 +239,17 @@ def test_print_progress_contains_carriage_return():
     assert result.returncode == 0, f"脚本执行失败: {result.stderr}"
 
     cr = "\r"  # 先取成变量，避免 f-string 表达式内出现反斜杠（Python < 3.12 会 SyntaxError）
-    cr_count = result.stdout.count(cr)
-    assert cr in result.stdout, f"期望输出包含回车符，实际输出: {repr(result.stdout)}"
-    assert cr_count == 3, (
-        f"期望输出包含 3 个回车符（与调用次数一致），实际: {cr_count} 个，"
-        f"输出: {repr(result.stdout)}"
+    without_crlf = result.stdout.replace("\r\n", "")
+    assert cr not in without_crlf, (
+        f"管道下不应出现独立回车符（tty 覆盖帧），实际输出: {repr(result.stdout)}"
     )
+    # 三次调用（0% / 60% / 100%）均满足步进条件，应有 3 个进度行
+    lines = _progress_lines(result.stdout)
+    assert len(lines) == 3, f"期望 3 个进度行，实际 {len(lines)} 个，输出: {repr(result.stdout)}"
 
 
 def test_print_progress_full_cycle_in_subprocess():
-    """验证完整的进度循环在 subprocess 中的输出"""
+    """验证完整的进度循环在 subprocess 中的输出（10 格循环 → 每步 10%，全部命中步进）"""
     script = """
         import time
         from printer import print_progress
@@ -243,10 +261,11 @@ def test_print_progress_full_cycle_in_subprocess():
     """
     result = _run_subprocess_script(script)
     assert result.returncode == 0, f"脚本执行失败: {result.stderr}"
-    # 最终输出应包含 100%
     assert "100%" in result.stdout, f"期望输出包含 100%，实际输出: {repr(result.stdout)}"
-    # 应包含完整的计数信息
     assert "(10/10)" in result.stdout, f"期望输出包含 (10/10)，实际输出: {repr(result.stdout)}"
+    # 0% 到 100% 每步 10%，11 次调用全部命中步进条件 → 11 行
+    lines = _progress_lines(result.stdout)
+    assert len(lines) == 11, f"期望 11 个进度行（0%~100% 步进 10%），实际 {len(lines)} 个: {repr(result.stdout)}"
 
 
 def test_print_progress_bar_characters():
@@ -258,8 +277,7 @@ def test_print_progress_bar_characters():
     result = _run_subprocess_script(script)
     assert result.returncode == 0, f"脚本执行失败: {result.stderr}"
     # 100% 时应全部用 '█' 填充
-    progress_line = result.stdout
-    assert "█" in progress_line, f"期望输出包含进度条填充字符 '█'，实际输出: {repr(progress_line)}"
+    assert "█" in result.stdout, f"期望输出包含进度条填充字符 '█'，实际输出: {repr(result.stdout)}"
 
 
 def test_print_progress_zero_percent():
@@ -296,6 +314,57 @@ def test_print_progress_invalid_total():
     assert "警告" in result.stdout, f"期望输出包含警告信息，实际输出: {repr(result.stdout)}"
 
 
+def test_print_progress_clamp_over_total():
+    """验证 idx > total 时百分比被钳制到 100%，条体不溢出 50 字符"""
+    script = """
+        from printer import print_progress
+        print_progress(15, 10)
+    """
+    result = _run_subprocess_script(script)
+    assert result.returncode == 0, f"脚本执行失败: {result.stderr}"
+    assert "100%" in result.stdout, f"期望钳制到 100%，实际输出: {repr(result.stdout)}"
+    assert "(15/10)" in result.stdout, f"计数器保留真实值 (15/10)，实际输出: {repr(result.stdout)}"
+    # 钳制后条体必须恰好是 50 个 █（旧版会溢出成 75 个）
+    assert "█" * 50 in result.stdout, f"期望条体恰好 50 个填充字符，实际输出: {repr(result.stdout)}"
+    assert "█" * 51 not in result.stdout, f"条体不应超过 50 字符，实际输出: {repr(result.stdout)}"
+
+
+def test_print_progress_step_throttling():
+    """验证步进节流：101 次调用（0~100）只输出 11 行，不刷屏"""
+    script = """
+        from printer import print_progress
+        for i in range(101):
+            print_progress(i, 100)
+    """
+    result = _run_subprocess_script(script)
+    assert result.returncode == 0, f"脚本执行失败: {result.stderr}"
+    lines = _progress_lines(result.stdout)
+    assert len(lines) == 11, (
+        f"期望 11 个进度行（0%,10%,...,100% 步进节流），实际 {len(lines)} 个: {repr(result.stdout)}"
+    )
+    assert "0%" in lines[0], f"首行应为 0%，实际: {repr(lines[0])}"
+    assert "100%" in lines[-1], f"末行应为 100%（必打），实际: {repr(lines[-1])}"
+
+
+def test_print_progress_second_cycle_resets():
+    """验证同一进程内第二个进度条从 0% 重新输出（步进基准被重置）"""
+    script = """
+        from printer import print_progress
+        for i in range(11):
+            print_progress(i, 10)
+        for i in range(11):
+            print_progress(i, 10)
+    """
+    result = _run_subprocess_script(script)
+    assert result.returncode == 0, f"脚本执行失败: {result.stderr}"
+    lines = _progress_lines(result.stdout)
+    # 每个循环 0%,10%,...,100% 共 11 行；若无重置，第二个循环只剩 100% 一行
+    assert len(lines) == 22, (
+        f"期望 22 个进度行（两个循环各 11 行），实际 {len(lines)} 个: {repr(result.stdout)}"
+    )
+    assert "0%" in lines[11], f"第二个循环首行应为 0%（重置生效），实际: {repr(lines[11])}"
+
+
 # ---------------- 真实 .py 脚本文件相关测试 ----------------
 
 def test_print_progress_in_real_py_file():
@@ -317,8 +386,8 @@ def test_print_progress_in_real_py_file():
     assert "█" in result.stdout, f"期望输出包含进度条填充字符，实际输出: {repr(result.stdout)}"
 
 
-def test_print_progress_in_real_py_file_keeps_carriage_return():
-    """真实 .py 脚本输出中同样保留 \\r 回车符（行内刷新的前提）"""
+def test_print_progress_real_py_file_no_standalone_carriage_return():
+    """真实 .py 脚本在管道下同样无独立 \\r（降级为换行输出）"""
     script = """
         from printer import print_progress
         print_progress(0, 4)
@@ -329,43 +398,42 @@ def test_print_progress_in_real_py_file_keeps_carriage_return():
     assert result.returncode == 0, f"脚本执行失败: {result.stderr}"
 
     cr = "\r"
-    cr_count = result.stdout.count(cr)
-    assert cr_count == 3, (
-        f"期望输出包含 3 个回车符（与调用次数一致），实际: {cr_count} 个，"
-        f"输出: {repr(result.stdout)}"
+    without_crlf = result.stdout.replace("\r\n", "")
+    assert cr not in without_crlf, (
+        f"管道下不应出现独立回车符（tty 覆盖帧），实际输出: {repr(result.stdout)}"
     )
 
 
 def test_print_progress_streams_in_realtime():
-    """验证进度条是边跑边输出的（flush=True 真正生效）。
+    """验证进度行是边跑边输出的（flush=True 真正生效）。
 
-    判定依据是"各帧到达的时间跨度"：若输出被缓冲，所有帧会在进程退出时一次性
-    到达，跨度接近 0。实测（Windows / Python 3.13）：
-      有 flush -> 首字节 0.61s 到达；无 flush -> 2.16s（等进程结束）。
+    判定依据是"各行到达的时间跨度"：若输出被缓冲，所有行会在进程退出时一次性
+    到达，跨度接近 0；flush 生效时各行随 sleep 间隔陆续到达。
     """
     script = """
         import time
         from printer import print_progress
         for i in range(5):
             print_progress(i, 4)
-            time.sleep(0.4)  # 拉开间隔：5 帧理论跨度约 1.6s
+            time.sleep(0.4)  # 拉开间隔：5 行理论跨度约 1.6s
     """
     stdout, frame_times, returncode = _stream_script_file(script)
     assert returncode == 0, f"脚本执行失败: {stdout}"
+    # 0%/25%/50%/75%/100% 均满足步进条件，共 5 行
     assert len(frame_times) == 5, (
-        f"期望收到 5 个进度帧，实际收到 {len(frame_times)} 个，输出: {repr(stdout)}"
+        f"期望收到 5 个进度行，实际收到 {len(frame_times)} 个，输出: {repr(stdout)}"
     )
 
     spread = frame_times[-1] - frame_times[0]
     assert spread > 1.0, (
-        f"进度帧几乎同时到达（跨度仅 {spread:.3f}s），说明输出被缓冲到进程退出才刷出，"
+        f"进度行几乎同时到达（跨度仅 {spread:.3f}s），说明输出被缓冲到进程退出才刷出，"
         f"flush=True 未生效"
     )
     assert "100%" in stdout, f"期望流式输出包含 100%，实际输出: {repr(stdout)}"
 
 
-def test_print_progress_stream_frames_split_by_carriage_return():
-    """验证流式输出可以按 \\r 切帧，每一帧都是一条完整进度"""
+def test_print_progress_stream_lines_are_complete():
+    """验证流式输出的每一行都是一条完整进度（可直接逐行消费/写日志）"""
     script = """
         import time
         from printer import print_progress
@@ -376,29 +444,35 @@ def test_print_progress_stream_frames_split_by_carriage_return():
     stdout, _, returncode = _stream_script_file(script)
     assert returncode == 0, f"脚本执行失败: {stdout}"
 
-    frames = [frame for frame in stdout.split("\r") if frame.strip()]
-    assert len(frames) == 4, f"期望 4 帧进度（与调用次数一致），实际 {len(frames)} 帧: {repr(stdout)}"
-    assert "0%" in frames[0], f"首帧应为 0%，实际: {repr(frames[0])}"
-    assert "100%" in frames[-1], f"末帧应为 100%，实际: {repr(frames[-1])}"
+    lines = _progress_lines(stdout)
+    assert len(lines) == 4, f"期望 4 行进度（与调用次数一致），实际 {len(lines)} 行: {repr(stdout)}"
+    for line in lines:
+        assert line.count("|") == 2, f"每行应为完整进度条（含两个 |），实际: {repr(line)}"
+        assert "处理中..." in line, f"每行应含自定义消息，实际: {repr(line)}"
+    assert "0%" in lines[0], f"首行应为 0%，实际: {repr(lines[0])}"
+    assert "100%" in lines[-1], f"末行应为 100%，实际: {repr(lines[-1])}"
 
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("测试 print_progress 在 subprocess 中的打印功能")
+    print("测试 print_progress 在 subprocess 中的打印功能（0.3.0 新版行为）")
     print("=" * 60)
 
     tests = [
         ("基本输出", test_print_progress_basic_output_in_subprocess),
-        ("回车符检查", test_print_progress_contains_carriage_return),
+        ("管道下无独立回车符", test_print_progress_no_standalone_carriage_return),
         ("完整进度循环", test_print_progress_full_cycle_in_subprocess),
         ("进度条字符", test_print_progress_bar_characters),
         ("0% 进度", test_print_progress_zero_percent),
         ("自定义消息", test_print_progress_with_message),
         ("非法 total 值", test_print_progress_invalid_total),
+        ("idx>total 钳制不溢出", test_print_progress_clamp_over_total),
+        ("步进节流(101次→11行)", test_print_progress_step_throttling),
+        ("第二个进度条重置", test_print_progress_second_cycle_resets),
         ("真实 .py 脚本", test_print_progress_in_real_py_file),
-        ("真实 .py 脚本保留回车符", test_print_progress_in_real_py_file_keeps_carriage_return),
+        ("真实 .py 脚本无独立回车符", test_print_progress_real_py_file_no_standalone_carriage_return),
         ("流式实时输出(flush)", test_print_progress_streams_in_realtime),
-        ("流式按回车符切帧", test_print_progress_stream_frames_split_by_carriage_return),
+        ("流式逐行完整", test_print_progress_stream_lines_are_complete),
     ]
 
     passed = 0

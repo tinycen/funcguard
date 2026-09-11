@@ -1,5 +1,13 @@
 # time_log 彩色日志在 subprocess 中的输出与捕获
 
+> **重构记录**：本文描述的是 **0.3.0 之前**旧版行为的排查过程。
+> 自 0.3.0 起：`time_log` 统一走 logger（空 level 默认 INFO），时间戳由
+> logger 输出（北京时间）；ANSI 颜色仅在 tty 输出；stream 动态解析，
+> `redirect_stdout`/`capsys` 可正常捕获；`propagate=False`。
+> 当前行为见 [logger.md](../../logger.md) 与
+> [subprocess_output.md](../../subprocess_output.md)，
+> 修复方案与实施见 [fix_plan.md](./fix_plan.md)。
+
 本文分析 `funcguard/time_utils.py` 的日志打印功能在 `subprocess` 场景下的表现：
 颜色编码会不会造成乱码、捕获到的到底是什么、以及由此牵出的几个静默失败陷阱。
 

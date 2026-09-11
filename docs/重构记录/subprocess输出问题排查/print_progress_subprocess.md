@@ -1,5 +1,12 @@
 # print_progress 在 subprocess 中的打印行为与测试
 
+> **重构记录**：本文描述的是 **0.3.0 之前**旧版行为的排查过程。
+> 自 0.3.0 起，`print_progress` 已改为 tty 感知：终端下 `\r` 原地覆盖 +
+> `\033[K` 清行尾；非终端（管道/CI）自动降级为按 10% 步进的换行输出，
+> 百分比钳制 0~100。当前行为见 [printer.md](../../printer.md) 与
+> [subprocess_output.md](../../subprocess_output.md)，
+> 修复方案与实施见 [fix_plan.md](./fix_plan.md)。
+
 本文记录对 `funcguard/printer.py` 中 `print_progress` 的一次完整排查：它在
 `subprocess` 场景下到底能不能打印、被父进程捕获到的是什么形态、现有测试文件是否可信，
 以及最终如何重写 `tests/test_print_progress.py`。

@@ -19,6 +19,11 @@ for i in range(100):
 from funcguard import time_log
 time_log("开始处理", level="INFO")
 time_log("处理完成", level="SUCCESS")
+
+# 注入自定义 logger（统一接管输出格式与时区）
+from funcguard import time_log, setup_logger
+my_logger = setup_logger("myapp", format="time_message", tz="bj")
+time_log("开始处理", level="INFO", logger=my_logger)
 ```
 
 **参数说明：**
@@ -28,7 +33,16 @@ time_log("处理完成", level="SUCCESS")
 - `s_time`: 开始时间，用于计算预计完成时间
 - `start_from`: i是否从0开始，`0`表示从0开始，`1`表示从1开始
 - `return_field`: 返回字段，支持 `"progress_info"` 表示完整进度信息，`"remaining_time"` 表示剩余时间，`"end_time"` 表示预计完成时间
-- `level`: 日志等级，支持 `DEBUG`/`INFO`/`PROGRESS`/`SUCCESS`/`WARNING`/`WARN`/`ERROR`/`CRITICAL`/`FATAL`，为空时仅 print
+- `level`: 日志等级，支持 `DEBUG`/`INFO`/`PROGRESS`/`SUCCESS`/`WARNING`/`WARN`/`ERROR`/`CRITICAL`/`FATAL`，为空时默认按 `INFO` 级别输出
+- `logger`: 可选，自定义 logger（`logging.Logger` 类型，建议通过 `setup_logger` 创建）。传入后替代内置 logger 统一输出，时间格式与时区由该 logger 决定，`time_log` 不再叠加时间戳。
+  - 请传入**命名 logger**（如 `setup_logger("myapp")`），不要传 root logger
+  - 若 logger 格式为 `format="message"`（不含时间），输出将不带时间戳；需要时间请配 `format="time_message"` + `tz="bj"`，或直接使用默认的内置 logger
+
+**输出说明：**
+- 默认输出格式为 `"HH:MM:SS 消息"`（北京时间），如 `10:00:00 处理中 5/100`
+- 统一走 logger 输出（`emit` 自动 flush），subprocess 捕获时不会因缓冲丢失
+- ANSI 颜色仅在真实终端输出，管道/文件场景自动输出纯文本
+- `redirect_stdout` / pytest `capsys` 可正常捕获
 
 **返回值：**
 - 根据 `return_field` 参数返回不同的信息
@@ -212,6 +226,10 @@ time_wait(5)
 
 **参数说明：**
 - `seconds`: 等待的秒数，默认值为 10 秒
+
+**输出说明：**
+- 终端（tty）下用 `\r` 原地覆盖刷新倒计时
+- 非终端（管道/文件/CI）自动降级为逐行输出（每秒一行），避免 `\r` 失去覆盖语义
 
 **返回值：**
 - 无
